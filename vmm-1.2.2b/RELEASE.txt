@@ -1,0 +1,148 @@
+------------------------------------------------------------
+Title: VMM Release Notes
+
+(C) Copyright 2004-2011 Synopsys, Inc.
+All Rights Reserved Worldwide
+
+Topic: Overview
+--------------------------------------------------
+
+The VMM methodology defines industry best practices for creating
+robust, reusable and scalable verification environments using
+SystemVerilog. 
+
+Introduced in 2005, VMM is the industry s most widely
+used and proven verification methodology for SystemVerilog. 
+
+The VMM methodology enables verification novices and experts alike to develop: 
+ - Powerful transaction-level
+ - Constrained-random verification environments. 
+ - Reusable verification environments across projects
+ - Reusable verification environments from block-level to SoC
+
+A comprehensive set of guidelines, recommendations and
+rules help engineers avoid common mistakes while creating
+interoperable verification components. The VMM Standard Library
+provides the foundation base classes for building advanced
+testbenches, while VMM Applications provide higher-level functions for
+improved productivity.
+
+Please join us at http://www.vmmcentral.org
+to engage with fellow verification engineers and industry experts, and
+to obtain VMM-related support. In addition, VMM Central offers the
+latest VMM-related news and a broad array of useful resources.
+
+Topic: VMM 1.2.0 Release Notes
+--------------------------------------------------
+
+VMM 1.2 adds new classes and concepts to provide additional functionality and flexibility:
+  - Parameterization support to many existing classes including channels and 
+    generators
+  - TLM-2.0 support, which adds remote procedure call functionality between 
+    components and extends support to SystemC modules. 
+  - Hierarchical Configuration Options adds a rich set of methods for controlling 
+    testbench functionality from the runtime command line, configuration files or 
+    from within the testench code itself. 
+  - Class Factory API allows for easier replacement of the class factory 
+    instances compared to the earlier versions of VMM. 
+  - Common Base Class provides hierarchical naming in multiple namespaces 
+    along with enhanced object search functionality.
+  - Concept of implicit phasing and hierarchical timelines for enhanced 
+    flexibility and reuse of verification components. Implicit phasing 
+    enables components to control their own simlation progress. Hierarchical 
+    phasing promotes block-to-system reuse, set-up, and restart of power domains.
+
+VMM 1.2 is based on the feedback and contributions of many
+verification engineers who participate in the verification community
+discussion forums at VMM Central. 
+
+Topic: VMM 1.2.1 Release Notes
+--------------------------------------------------
+
+
+Additions and bug fixes in the standard library:
+  - Updated all base classes for full compliance with other simulators
+  - Improved examples  
+  - Added vmm_broadcast::update_xactor_notifications
+  - Fixed minor issues in vmm_consensus
+  - Added post_scenario_gen callback in vmm_ms_scenario_gen.sv
+  - Added PUSH/PULL mode for cvmm_channel, vmm_atomic_gen and vmm_scenario_gen
+    Available with channel.wait_for_request() blocking task
+  - Addedd vmm_consensus::is_register_consensus & vmm_consensus::set_register_consensus 
+  - Added vmm_object support in vmm_notify with set_parent_object() function
+  - Added parent explicit registration with vmm_object::register_object() /  
+    vmm_object::unregister_object
+  - Possibility to underpin vmm_group with custom base class
+    (default is vmm_unit)
+
+Additions and bug fixes in the standard library for interoperability:
+  - Added support for VMM_UVM_INTEROP library
+  - Adedd full interoperability between VMM-SV and VMM-SC (available on demand)
+
+Additions and bug fixes in VMM-HAL:
+  - Support of CHIPit in VMM-HAL
+
+Additions and bug fixes in VMM-PA:
+  - Improved VMM performance analyzer output files
+
+Additions and bug fixes in VMM-RAL
+  - Added RAL implicit phasing support and underpinning
+
+Topic: VMM 1.2.2 Release Notes
+--------------------------------------------------
+
+Additions and bug fixes in the standard library:
+  - Changed code for full compliance with other simulators in {vmm_channel, vmm_consensus, vmm_log, vmm_scenario_gen, vmm_tlm, }
+  - Improved error messages in few classes {vmm_config}
+  - Improved vmm_data_macros memory allocation and byte_pack and byte_size functionality for nested classes 
+  - Improved unpack implementation of vmm_data_macros_utils
+  - Improved handling of user error in vmm_factory
+  - Added support of binary/octal/hexadecimal/decimal values in vmm_opts integer
+  - Fixed handling of regular expressions in vmm_path_match
+  - Added vmm_rw_burst::psdisplay() method
+  - Improved handling of invalid timeline in vmm_timeline, added vmm_timeline::get_current_phase_name()
+  - Improved transaction recording implementation
+  - Added  vmm_simulation:allow_new_phases
+  - Made VMM DS scoreboard expect* methods to be virtual, fixed vmm_sb_ds_callbacks
+  - Allowed passing of extended vmm_voter class to register_voter() in vmm_consensus
+  - Fixed handling enums due in unpack method in VMM
+  - Fixed constraints in VMM_TLM: data length and byte enable length in vmm_tlm_generic_payload
+  - Fixed issue in vmm_tlm nb_transport_bw() with multiple initators
+  - Changed find_object_by_name method to walk through the hierarchy upto the parent and then search for its children
+  - Improved diagnostic message with vmm_opts::get_help
+  - Improved pull mode for generators/channels
+  - Added a gen_config_ph after rtl_config_ph and before build_ph
+  - Enhanced user customizations of vmm_log and vmm_channel through Symbolic base classes
+
+
+Additions and bug fixes in VMM-RAL
+  - Added full documentation in source code for NaturalDocs
+  - Changed code for full compliance with other simulators 
+  - Fixed a few issues in RAL generation
+    - vmm_ral_access::read() not blocked on pending transaction in PIPELINED ACCESS
+    - RAL base address if specified through constructor not getting added to physical address 
+    - Removal coverpoint generation for 'unused' and 'reservred' fields
+    - No need to specify domain names for accesses if only one explicit domain exists
+    - Provided 'sample_field_values()' method at the register level.
+    - incorrect value range in covergroups for memory
+    - Issues with Backdoor accesses generation  of register arrays
+    - Incorrect address increments for backdoor accesses with memories in RALF file.
+    - Handling of reset value in IPXACT -> RALF
+    - Issues in vmm_ral_mem::validate_burst
+    - Use of the same regfile name in the different domains
+
+  - Enhancements
+    -	Base class optimization on vmm_nofification_config for performance
+    -	Hexadecimal support in HDL path inRALF
+    -	Allowing non-intrusive periodic mirroring through Backdoor, without halting the normal operation of the testbench
+    -	Enhanced IPXACT support
+    -	New handle of reg from RegFile
+    -	RAL mirror update in post_write method rather then in post_single
+    -	RAL to check for "X" during backdoor accesses
+    -	Turn on field coverage globally from the ralgen command line with -F
+    -	Support of -f option to pass a file list with ralgen
+
+
+Additions in vmmgen
+  - Added support for classes extending from a Business Unit Layer
+  - Fixed constraint issue in testcase generation

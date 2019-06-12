@@ -1,0 +1,2759 @@
+#!/usr/bin/perl 
+
+eval 'exec perl -S $0 ${1+"$@"}'
+                 if 0;
+use 5.6.0;
+
+#
+# Generate templates for VMM-compliant verification components and environments
+#
+## -------------------------------------------------------------------------
+##    Copyright 2011 Synopsys, Inc.
+##    All Rights Reserved Worldwide 
+##  
+## SYNOPSYS CONFIDENTIAL - This is an unpublished, proprietary work of 
+## Synopsys, Inc., and is fully protected under copyright and trade 
+## secret laws. You may not view, use, disclose, copy, or distribute this 
+## file or any information contained herein except pursuant to a valid 
+## written license from Synopsys. 
+## 
+## -------------------------------------------------------------------------
+#
+# Parse the command-line options
+#
+use Getopt::Long;
+Getopt::Long::Configure("no_ignore_case");
+
+#Generate the LOG file which contains all the selected options
+open (OPTLOG, "> vmmgen_options_log.txt");
+#$default_option_file = "cfg.vmmgen";
+#$opt_cfg = "DEF";
+&usage if !GetOptions('help|h|?'   => \&usage,
+                      'd'          => \$opt_d,
+                      'O'          => \$opt_O,
+                      'X'          => \$opt_X,
+                      'o=s'        => \$opt_o,
+                      'L=s'        => \$opt_L,
+                      'q'          => \$opt_q,
+                      'l=s'        => \$opt_l,
+                      'SE=s'       => \$opt_SE,
+                      'RAL=s'      => \$opt_RAL,
+                      'RTL=s'      => \$opt_RTL,
+                      'ENV=s'      => \$opt_ENV,
+                      'TR=s'       => \$opt_TR,
+                      'BU=s'       => \$opt_BU,
+                      'cfg_file=s' => \$opt_cfg
+                      ) || @ARGV ;
+#if($opt_cfg eq "") {
+#    $opt_cfg = $default_option_file; 
+#}
+#elsif($opt_cfg eq "DEF") {
+#     $opt_cfg = "";
+#}
+#Set the quick Mode enable if config file is used
+$opt_q = 1 if ($opt_cfg ne "");
+if($opt_cfg ne "") {
+  print(" \n\nQuick Mode: Generating templates based on the config. options stored in file $opt_cfg \n");
+  print("");
+}
+sub get_cfg {
+   my @split_arr;
+   my ($cfg_var) = @_;
+   chomp ($cfg_var);
+   if(!open(CFG, "$opt_cfg")) { die "\nERROR: CFG file '$opt_cfg' does not exist\n\n" };
+   while($cfg = <CFG>) {
+      chomp($cfg);
+      if($cfg =~ m/$cfg_var/) {
+         
+         @split_arr = split(/=/, $cfg);
+         chomp (@split_arr);
+         $return_value =  @split_arr[$#split_arr];
+         chomp ($return_value);
+         return($return_value);
+      }
+   }
+   close CFG;
+}
+
+
+if($opt_q) {
+
+   if($opt_cfg) {
+      $opt_SE   = &get_cfg("SE");
+      $opt_RTL  = &get_cfg("RTL");
+      $opt_RAL  = &get_cfg("RAL");
+      $vip_name = &get_cfg("ENV");
+      $opt_TR   = &get_cfg("TR");
+      $opt_BU   = &get_cfg("BU");
+   }
+
+   if($opt_ENV =~ m/^[a-zA-Z_][a-zA-Z0-9_.]*$/) {$vip_name = $opt_ENV;}
+   if(($opt_SE  eq  "y") or ($opt_SE  eq  "Y")) { $env_type_1 = "with_se";}
+   if(($opt_SE  eq  "n") or ($opt_SE  eq  "N")) { $env_type_1 = "with_out_se";}
+   if(($opt_RAL eq  "y") or ($opt_RAL eq  "Y")) { $env_type_2 = "ral";}
+   if(($opt_RAL eq  "n") or ($opt_RAL eq  "N")) { $env_type_2 = "simple";}
+   if(($opt_RTL eq  "y") or ($opt_RTL eq  "Y")) { $rtl_cnfg_en = 1;} 
+   if(($opt_RTL eq  "n") or ($opt_RTL eq  "N")) { $rtl_cnfg_en = 0;} 
+   if(!($opt_TR eq "")) {
+      @tr_name = split('\+',$opt_TR);
+      $tr_count  = $#tr_name;
+      $num_of_tr = @tr_name ;
+      #IF more than one transactions are provided then select the first one as default for driver
+      if($num_of_tr > 1) {
+       $tr_for_drv_set = 1; 
+      }
+   }
+   if(!($opt_BU eq "")) {
+	  @temp_bu_name = split('\+',$opt_BU);
+	  if ($num_of_tr > 1)
+	  {
+	  	for($count=0; $count<$num_of_tr; $count++)
+		  {
+			 if($count == 0)
+			 {
+				 push(@bu_name, $temp_bu_name[0]); 
+			 }
+			 elsif( $temp_bu_name[$count] eq "")
+			 {
+			 	push(@bu_name, $temp_bu_name[0]); 
+			 }
+			 else{
+				 push(@bu_name, $temp_bu_name[$count]);
+			 }
+		  }
+	  }
+	  else
+	  {
+		 push(@bu_name, $opt_BU);
+	  }
+   }
+}
+
+#Welcome Message
+if(!$opt_g) {
+   print "\n------------------------------------------------------------\n";
+   print "\t     WELCOME TO VMM TEMPLATE GENERATOR";
+   print "\n------------------------------------------------------------\n";
+}
+
+#Selecting the VMM version
+&select_vmm_version();
+
+#Hunt for standard templates 
+&get_std_tmpl_paths();
+
+# Any user-specified template directories?
+&user_spe_tmpl_dir();
+
+$| = 1;
+#===============================================================
+# Check what templates are available for the specified language?
+#===============================================================
+
+foreach $templates (@libdirs) {
+   if (!open(IDX, "< $templates/$opt_l.index")) {
+     # It's OK - we'll eventually find one...
+     next;
+   }
+   push(@title, $templates);
+   push(@desc_off, $#desc+1);
+   # Grab filenames and descriptions from the index file
+   while ($_ = <IDX>) {
+      if ($_ =~ m/^\s*LIBNAME\s+(.*\S)\s*$/) {
+         $title[$#title] =ENV;
+         next;
+      }
+      next if ($_ !~ m/^\s*(\S+\.([^. \t]+))\s+(.+)\s*$/);
+
+      push(@fname, "$templates/$1");
+      push(@fext, $2);
+      push(@desc, $3);
+   }
+   close(IDX);
+}
+#==============================================================
+# Grab What to generate?,Complete env or Individual Template.
+#==============================================================
+if($opt_l eq "sv") {
+  
+   #Call to get user decision for complete environment/individual template
+   &get_temp_gen_choice();
+ 
+   #intialization of required variables
+   $im = 2;
+   $macro_counter = 0;
+   $multi_driver_enable = 0;
+   $multi_drv_count = 0;
+   $single_drv_count = 0;
+   $ral_count = 0;
+   #VMM-1.2 related macro counters
+   $drv_chnl_cnt = 0;
+   $drv_tlm_cnt = 0;
+#==============================================================
+# Swith to select generation flow.(Generate Complete Environment)
+#==============================================================
+   if($gen_opt == 1) {
+      # Call to get user decision for enabling vmm shorthand macros
+      &get_macro_perf_choice("macro","opt_m");
+
+      # Selection of phasing methods in case of VMM-1.2 
+      &select_phasing_method("tst_phase","Testcase and Env.?") if ($vmm_ver eq "vmm1.2");
+
+      # Subenv implementation?
+      &sub_env_choice ();
+      &select_phasing_method("vip_phase","VIPs?") if($vmm_ver eq "vmm1.2" && $env_type_1 eq "with_se");
+      $array_h{"vip_phase"} = $array_h{"tst_phase"} if($vmm_ver eq "vmm1.2" && $env_type_1 eq "with_out_se");
+
+      # Call to get env type ral/normal 
+      &get_envtype();
+
+      #If VMM-1.2 is selected and implicit phasing is selected then ask a question for RTL configuration
+      &select_rtl_config() if((($vmm_ver eq "vmm1.2") && ($array_h{"tst_phase"} eq "impl") && 
+                              ($array_h{"vip_phase"} eq "impl")) && ($rtl_cnfg_en eq ""));
+
+      ## Get env name and transaction name 
+      &get_env_name() if($vip_name eq "");
+      &get_tr_names() if($opt_TR eq "");
+
+      # User interaction logic for VMM Generators 
+      &select_generators();
+
+      #Generate the scenario names based on the generator type 
+      &gen_scen_names() if($generator_type == 2);
+
+      # User intercation logic for multiple driver selection
+      &check_available_driver;
+      if($#driver_description != -1) {
+         do {
+            #subroutine call for driver selection
+            &select_driver_monitor("driver");
+
+            #This subroutine selects the transaction class for driver
+            &select_tr_for_driver(); 
+            if($default_env_name) {
+               while(1){
+                    print "\nEnter Name of Driver Class for $tr_name[$t - 1] Transaction:";
+                    $_ = <STDIN>;
+                    chop($_);
+                    &store_selected_options("Driver Class Name for  $tr_name[$t - 1] Transaction",$_);
+                    s/^\s+//;
+                    s/\s+$//;
+                    if ($_ !~ m/^[a-zA-Z_][a-zA-Z0-9_.]*$/) {
+                       print STDERR "ERROR: \"$_\" is not a valid identifier.\n" if(!$opt_g);
+                       next;
+                    }
+                    if ($_ =~ m/^((rvm)|(vmm))/) {
+                       print STDERR "ERROR: name cannot start with \"$1\".\n" if(!$opt_g);
+                       next;
+                    }
+                    $current_bfm_name = $_;
+                    last;
+                 }
+               push(@mult_driv_names,$current_bfm_name);
+            } 
+            if (!$opt_q) {
+               $drv_text = "\nDo you want to integrate one more driver ? enter (y/n)"; 
+               $proceed  = &get_yesNo_selection($drv_text,"",1);
+               &store_selected_options("One more driver?","y") if ($proceed == 1);
+               &store_selected_options("One more driver?","n") if ($proceed == 0);
+            }
+            else {
+               $proceed = 0;
+            }
+         } while($proceed);
+         #If use selects multple drivers set variable for further use.
+         if($#drivers > 0 ) {
+            $multi_driver_enable = 1;
+         } 
+         else {
+            $multi_driver_enable = 0;
+         }
+         #Adding a logic to generat full names, f_tr_names, f_tr_for_driver_names, 
+         for($tmp=0;$tmp<@tr_name;$tmp++) {
+             push(@f_tr_names, @tr_name[$tmp]);
+         } 
+         for($tmp=0;$tmp<@tr_for_driver;$tmp++) {
+            push(@f_low_tr_names, @tr_for_driver[$tmp]);
+         }   
+         for($tmp=0;$tmp<@tr_for_driver;$tmp++) {
+            push(@f_tr_for_driver_names, @tr_for_driver[$tmp]);
+         }
+         if($multi_driver_enable == 1) {
+            if(!$default_env_name) {
+               for($tmp=0;$tmp<@drivers;$tmp++) {
+                  $k = $tmp + 1;
+                  $current_bfm_name = $vip_name."_".$tr_for_driver[$tmp]."_bfm_$k";
+                  push(@mult_driv_names,$current_bfm_name);
+               }
+            }
+         }
+         else {
+            if (!$default_env_name) {
+               $sing_driv_name= $vip_name."_bfm";
+            }
+            else {   
+               $sing_driv_name= @mult_driv_names[0]; 
+            }
+         }
+         #Set the length for the transactions for repeating code
+         $rpt_array_len{"TR"} = @tr_for_driver;
+         #VMM-1.2 related logic, Asking the generator-driver connection logic
+         &select_gen_drv_conn() if($vmm_ver eq "vmm1.2");  
+      } 
+      else {
+         print "WARNING: No Driver is available in Template library\n" if (!$opt_g);
+      }
+      #Assign driver count to set interface array length in env.
+      $intf_count = $#drivers+1;
+        
+      # User intercation logic for Generic slave receiver
+      &select_receiver(); 
+
+      # Logic for selecting monitor among the available from template lib.
+      &check_available_monitors;
+      if($#monitor_description != -1) {
+         &select_driver_monitor("monitor") if($#monitor_description != -1);
+      }
+      else {
+         print "WARNING: NO Monitor is available in template library\n" if(!$opt_g);
+      }
+      #Select the monitor-to-observer connection approach
+      &select_mon_obs_conn() if($vmm_ver eq "vmm1.2");
+
+      &ral_domin_selection() if($env_type_2 eq "ral");
+      &ral_bfm_domain_selection() if ($ral_bfm_type == 2);
+             
+      #Push values for Environment class file
+      if($env_type_2 eq "ral") {
+         $concat_var= $vip_name."_ral_env";
+      }
+      else {
+         $concat_var= $vip_name."_env";
+      }  
+      &push_file_var_v("ENV",$concat_var);
+      &push_file_var_v("INTF_COUNT","$intf_count");
+      sub push_file_var_sub { 
+         my ($component,$string,$text) = @_;
+         chomp ($component,$string); 
+         if (($default_env_name) && ($text ne "")) {
+            while(1){
+               print "\nEnter Name of $text:";
+               $_ = <STDIN>;
+               chop($_);
+               s/^\s+//;
+               s/\s+$//;
+               if ($_ !~ m/^[a-zA-Z_][a-zA-Z0-9_.]*$/) {
+                  print STDERR "ERROR: \"$_\" is not a valid identifier.\n" if(!$opt_g);
+                  next;
+               }
+               if ($_ =~ m/^((rvm)|(vmm))/) {
+                  print STDERR "ERROR: name cannot start with \"$1\".\n" if(!$opt_g);
+                  next;
+               }
+               $op_file_name_h{$component} = $_;
+               last;
+            }
+         }
+         else {
+               $op_file_name_h{$component} = $vip_name."$string";
+         }
+           chomp($op_file_name_h{$component});
+           &push_file_var_v("$component", $op_file_name_h{$component});
+      }
+      &push_file_var_sub("IF","_if","Physical Bus");
+      &push_file_var_sub("PRT","_port","IF wrapper") if($vmm_ver eq "vmm1.2");
+
+      #push values for master_subenv and slave subenv 
+      if($env_type_1 eq "with_se") {
+         &push_file_var_sub("MASTER_SE","_master_subenv","Master sub env");            
+			if($gen_slv_used) {
+            &push_file_var_sub("SLAVE_SE","_slave_subenv","Slave sub env");
+         }
+      }
+      &push_file_var_sub("REC","_slave","Generic Slave receiver") if ($gen_slv_used == 1);
+
+      @push_keys   = ("VNAME","PB","MOD","CFG","COV","TEST_NAME","XACT","TX");
+      @push_values =   ("","_prog","_top","_cfg","_cov","_test","_bfm","");
+      @text = ("","Program Block","","Env Configuraton","Coverage class","testcase","","");
+      foreach $m (@push_keys) {
+         my $var = shift @push_values; 
+         my $text = shift @text; 
+         chomp ($m,$var,$text);
+         &push_file_var_sub($m,$var,$text);
+      }
+      #Call for UI from user for Scoreboard
+      &get_scoreboard_selection();
+  
+      &push_file_var_sub("SB","_scbd","Scoreboard Class") if ($sb_enable == 1);
+      #Call for UI from user for Scoreboard integration method in Environment
+      &get_sbmethod() if($sb_enable && ($vmm_ver eq "vmm1.1" || ($vmm_ver eq "vmm1.2" && $mon_obs_conn == 1))); 
+       
+      #Call to get user decision for enabling vmm_perf_analyzer part
+      &get_macro_perf_choice ("perf","opt_p");
+      
+      #Call to add directory structure
+      &make_dirs();
+      $fltoopen = 0;
+      $temp_kind = 0;
+      sub gen_filename_sub { 
+         my ($template,$symbol,$temp_kind) = @_;
+         chomp ($symbol,$template,$temp_kind); 
+         if ($temp_kind == 0) {
+           &gen_env_file("$template", $op_file_name_h{"$symbol"});
+         }
+         else {
+           &gen_env_file("$template", $op_file_name_h{$symbol},$temp_kind);
+         }
+      } 
+      &gen_filename_sub ("IF","IF");
+      &gen_tr_driver_files();
+      # Write the Scenario files in case of scenario generators 
+      &gen_scen_files() if($generator_type == 2);
+
+      # Write the MS-scenario Library
+      &gen_env_file("ms_scenario", $vip_name."_ms_scen") if($generator_type == 3);
+
+      # Write generic slave Rr
+      if($gen_slv_used == 1) {
+         &gen_filename_sub("generic_slave_receiver","REC",5);
+         &gen_env_file("vmm_slave_receiver", $vip_name."_slave_base") if (!$default_env_name);
+         &gen_env_file("vmm_slave_receiver", $op_file_name_h{"REC"}."_base")if ($default_env_name);
+      }
+      #Generate appropriate monitor file as per user choice 
+      %mon_gen = (1 =>"m_h_bfm",2=>"m_f_bfm",3=>"m_h_hgh",4=>"m_f_hgh");
+      foreach $mon(keys (%mon_gen)){
+         &gen_filename_sub($mon_gen{$mon}, "MON") if($monitor == $mon);
+      } 
+
+      #Write Scoreboard
+      &gen_filename_sub("sb","SB") if $sb_enable;
+        
+      ## Generate test_registry template
+      &gen_filename_sub("test_registry","PB",9);
+      ##write test case
+      &gen_filename_sub("test","TEST_NAME",9);
+      
+      ##Write Generator sb call backs 
+      #&gen_env_file("gen_sb_cb", $vip_name."_".@tr_for_driver[0]."_trans_gen_sb_cb"); 
+      #Write Driver sb call backs
+      if($multi_driver_enable) { 
+       &gen_env_file("sb_cb",  $mult_driv_names[0]."_sb_cb") if ($sb_enable); } 
+      else {
+       &gen_env_file("sb_cb",  $sing_driv_name."_sb_cb") if ($sb_enable); 
+      }   
+      
+      #Mon-Sb callback file is generated only if the mon-observer conn. method#1 is selected 
+      if(($sb_enable && ($vmm_ver eq "vmm1.1" || ($vmm_ver eq "vmm1.2" && $mon_obs_conn == 1))) || $opt_q) {
+         #Write Monitor sb call backs 
+         &gen_env_file("mon_sb_cb", $vip_name."_mon_sb_cb") if (!$default_env_name); 
+         &gen_env_file("mon_sb_cb", $op_file_name_h{"MON"}."_sb_cb") if ($default_env_name); 
+      }
+      $tr_in  = &get_index("TR");
+      #Write top module
+      &gen_filename_sub("top","MOD",10);
+       
+      # write cfg file
+      &gen_filename_sub("cfg","CFG");
+
+      #write coverare file
+      &gen_filename_sub("cov","COV");
+ 
+      #Mon-Cov callback file is generated only if the mon-observer conn. method#1 is selected 
+      if($vmm_ver eq "vmm1.1" || ($vmm_ver eq "vmm1.2" && (($mon_obs_conn == 1) || ($opt_q)))) {
+         # write mon_2cov_connect file
+         &gen_env_file("mon_2cov_connect", $vip_name."_mon_2cov_connect") if (!$default_env_name);
+         &gen_env_file("mon_2cov_connect", $op_file_name_h{"MON"}."_2cov_connect")if ($default_env_name);
+      }          
+ 
+      #Generating the files related to vmm-1.2 only
+      if($vmm_ver eq "vmm1.2") {
+         &gen_filename_sub("port","PRT"); 
+         #IF RTL Config is enabled then create a file of RTL config
+         if($rtl_cnfg_en == 1) {
+            if($multi_driver_enable) {
+               $xact_ind = &get_index("XACT");
+               for($t=0; $t< @drivers;$t++) {
+                  $v[$xact_ind] = $mult_driv_names[$t];
+                  &gen_env_file("bfm_rtlcfg",$mult_driv_names[$t]."_rtlcfg");  
+               }
+               $v[&get_index("XACT")] = $mult_driv_names[0];
+            }
+            else {
+               &gen_env_file("bfm_rtlcfg", $vip_name."_bfm"."_rtlcfg");
+            }
+            &gen_env_file("rec_rtlcfg",$vip_name."_rec_rtlcfg") if($gen_slv_used);
+            &gen_env_file("env_rtlcfg",$vip_name."_env_rtlcfg");
+         }  
+      }
+      
+      #include file generation 
+      &gen_filename_sub("vname","VNAME",11);
+
+      ## Write ral bfm file
+      if($ral_bfm_type == 1) {
+         if($multi_driver_enable == 1) {
+            $curr_ral_bfm_name =  $mult_driv_names[0]."_ral";
+         }
+         else {
+            $curr_ral_bfm_name =  $vip_name."_bfm_ral" if (!$default_env_name);
+            $curr_ral_bfm_name =  $current_bfm_name."_ral" if ($default_env_name);
+         } 
+         &gen_env_file("ral_bfm_1d", $curr_ral_bfm_name);
+      }
+      if($ral_bfm_type == 2) {
+         $total_pushed_var = $#d;
+         &push_file_var_v("DOM","");
+         $xact_ind = &get_index("XACT");
+         for(my $tmp = 0; $tmp < $dom_count; $tmp++) {
+            @v[$total_pushed_var] = @dom_name[$tmp];
+            if($multi_driver_enable == 1) {
+               $v[$xact_ind] = $mult_driv_names[$tmp];
+            }
+           if($multi_driver_enable == 1) {
+              for(my $tmp=0; $tmp<= $#drivers; $tmp++) { 
+                 $curr_ral_bfm_name =  $mult_driv_names[$tmp]."_".@v[$total_pushed_var]."_ral";
+                 @v[&get_index("XACT")] = $mult_driv_names[$tmp];
+                 &gen_env_file("ral_bfm_md", $curr_ral_bfm_name);
+              }
+           }
+           else {
+              $curr_ral_bfm_name =  $vip_name."_bfm_".@v[$total_pushed_var]."_ral";
+              &gen_env_file("ral_bfm_md", $curr_ral_bfm_name);
+            } 
+         }
+         if($multi_driver_enable) { 
+         #Restoring back the name of driver
+         $v[&get_index("XACT")] = $mult_driv_names[0];
+         }
+      }
+      ## Write Env class template
+      if($env_type_1 eq "with_se") {
+         if($env_type_2 eq "ral") {
+            ## Add ralf file
+            &gen_filename_sub("vname_ralf","VNAME",7);
+            &gen_env_file("tb_env_with_se", $vip_name."_ral_env",2);
+         }
+         else {            
+            &gen_env_file("tb_env_with_se", $vip_name."_env",2);
+         }
+         &gen_filename_sub("master_subenv", "MASTER_SE");
+         if($gen_slv_used == 1) {
+            &gen_filename_sub("slave_subenv","SLAVE_SE");
+         }
+      }
+      else {
+         if($env_type_2 eq "ral") {
+            ## Add ralf file
+            &gen_env_file("vname_ralf","$vip_name",7);
+            &gen_env_file("tb_env", $vip_name."_ral_env",3);
+         } 
+         else {
+            &gen_env_file("tb_env", $vip_name."_env",2);
+         }
+      }      
+      # Generate one factory testcase when VMM-1.2 is used 
+      if($vmm_ver eq "vmm1.2") {
+         $v[&get_index("TEST_NAME")] = "test_fctry_override";
+         &gen_env_file("test_fctry_override", "test_fctry_override",9);
+      }
+      #Restore back the name of a testcase
+      $v[&get_index("TEST_NAME")] = $op_file_name_h{"TEST_NAME"};
+      # write makefile
+      $sb_value = $v[&get_index("SB")];
+      #hardcoded value or SB to Sb for Makefile define +define+VMM_SB_DS_IN_STDLIB
+      $v[&get_index("SB")] = "SB";
+      &gen_env_file("Makefile", "Makefile",6);
+      $srcFiles = "";  
+      for($t=0;$t<@srcdirfiles;$t++) {
+         $srcFiles = $srcFiles."\n"."       | - $srcdirfiles[$t]";
+      }
+      $envFiles = "";  
+      for($t=0;$t<@envdirfiles;$t++) {
+         $envFiles = $envFiles."\n"."       | - $envdirfiles[$t]";
+      }
+      &push_file_var_v("ENFILES","$envFiles");
+      &push_file_var_v("SRCFILES","$srcFiles");
+      $v[&get_index("SB")] = $sb_value;
+      
+      #Write README file
+      &gen_env_file("README", "README",12);
+            
+      #Call to print usage
+      if(!$opt_g) {
+          &print_usage_for_ce();
+      }
+      else { 
+         system("rm vmmgen_opts");
+      }
+   } ### End of complit ENV
+   
+#==================================================================
+# Generate Individual templates as per user choice
+#==================================================================
+   if($gen_opt == 2) {
+      $im = 0;
+      print "\nWhich template do you wish to generate?\n" if(!$opt_g); 
+      for($i = 0; $i <= $#desc; $i++) {
+         while ($#desc_off >= 0 &&  $i == $desc_off[0]) {
+            if(!$opt_g){
+               print "\nFrom $title[0]: \n";
+            }
+            shift(@desc_off);
+            shift(@title);
+         }
+         print "    $i) $desc[$i]\n" if(!$opt_g);
+      }
+      #Capture template no of user choice. 
+      while (1) {
+         if(!$opt_g){
+            print "Select [0-$#desc]: ";
+            $_ = <STDIN>;
+         }
+         else{
+            $_ = <OPT_FILE>;
+         }
+         chomp($_);
+         s/^\s+//;
+         s/\s+$//;
+         next if ($_ !~ m/^\d+$/);
+         next if ($_ > $#desc);
+         $n = $_;
+         last;
+      }
+      &store_selected_options("Ind. Template Type",$_);
+      $temp_kind = &identify_temp_kind;
+     
+      #Call to get user decision for enabling vmm shorthand macros
+      &get_macro_perf_choice("macro","opt_m")  if($ask_macro_Q);
+
+      #Call to get user choice for enabling vmm_perf_analyzer
+      &get_macro_perf_choice("perf","opt_p") if($ask_perf_Q);
+
+      #Call the user choice option for the phasing methods in case of vmm-1.2 
+      if($vmm_ver eq "vmm1.2") {
+        &select_phasing_method("tst_phase","Tescase/Env?") if($ask_test_phasing_Q) ; 
+        &select_phasing_method("vip_phase","VIPs?") if($ask_xact_phasing_Q);
+        $p = $array_h{"tst_phase"}; 
+        $q = $array_h{"vip_phase"}; 
+      }
+      #Add scenarios in scenario library as per user choice
+      if($temp_kind == 1) {
+         $fltoopen = $n;
+         $err,$count = 0;
+         do {
+            &gen_template($next) if ($err == 0);
+            if(!$opt_g){
+               print "Do you want add one more scenario ? enter (y/n): ";
+               $_ = <STDIN>;
+            }
+            else{
+               $_ = <OPT_FILE>;
+            }
+            chomp($_);
+            if($_ =~ m/^[yY]/) {
+               $next=1;
+               $last_scen = 0;
+               $err=0;
+            } 
+            elsif ($_ =~ m/^[nN]/) {
+               $next=0;
+               $last_scen = 1;
+            }
+            else {
+               print STDERR "ERROR: \"$_\" is not a valid identifier.\n" if(!$opt_g);
+               $next=1;
+               $err=1;
+            }
+            $count = $count+1;
+         } while ($next);
+      }
+      #Add various user interaction question for 3 env files  
+      elsif(($temp_kind == 2) || ($temp_kind == 3) || ($temp_kind == 8)) {
+         $ral_bfm_type = 1;
+         #Do not ask RAL question in case of RAL env selection in vmmgen-1.1 
+         &get_envtype();         
+         $fltoopen = 0;
+         &select_generators();
+         #TLMs are supported only in case of VMM-1.2
+         if($vmm_ver eq "vmm1.2") {
+            &select_gen_drv_conn;
+            &select_mon_obs_conn;
+            &get_sbmethod() if($mon_obs_conn == 1); 
+         }
+         elsif($vmm_ver eq "vmm1.1") {
+            &get_sbmethod(); 
+         }
+         &gen_template($next);
+         if($temp_kind == 8) {
+            $gen_opt = 1;
+            &gen_env_file("master_subenv",$v[&get_index("MASTER_SE")]); 
+            &gen_env_file("slave_subenv", $v[&get_index("SLAVE_SE")]); 
+            $gen_opt = 2;
+         }
+      }
+      elsif($temp_kind == 11)  #In case of MSS scenario library
+      {
+         $gen_opt = 1;
+         #&push_file_var_v("TR","");
+         #&push_file_var_v("SCEN","");
+         $temp_kind = 0;
+         &get_env_name();
+         &push_file_var_v("VNAME",$vip_name);
+         &get_data_class_name();
+         #@tr_for_driver = @tr_name;
+         #&gen_tr_files();
+         #&gen_scen_names(); 
+         #&gen_scen_files();
+         &push_file_var_v("TR",$tr_name[0]);
+         &push_file_var_v("SCEN",$tr_name[0]."_basic_scen");
+         &gen_env_file("ms_scenario", $vip_name."_ms_scen");
+      }
+      else {
+         &select_gen_drv_conn if($temp_kind == 13 && $vmm_ver eq "vmm1.2"); 
+         &select_mon_obs_conn if($temp_kind == 14 && $vmm_ver eq "vmm1.2"); 
+         &select_generators if($temp_kind == 15);
+         $fltoopen = 0;
+         &gen_template($next);
+      }
+      #Lift template as it is for generic driver.
+      if($temp_kind == 4 ) {
+         $gen_opt = 1;
+         &gen_env_file("vmm_master_driver", @v[&get_index("XACT")]."_base");
+         $gen_opt = 2;
+      }
+      #Lift template as it is for generic slave receiver.
+      if($temp_kind == 5) {
+         $gen_opt = 1;
+         &gen_env_file("vmm_slave_receiver", @v[&get_index("REC")]."_base");
+         $gen_opt = 2;
+      }
+      #Call to print usage
+      if(!$opt_g) { 
+         &print_usage_for_it();
+      }
+      else {
+        system("rm vmmgen_opts");
+      }
+   }
+}
+else {
+   # other than sv language support
+   if($array_h{"opt_m"}) {
+      print "[WARNING] macro option is not supported in vera\n" if(!$opt_g);
+   }
+   print "\nWhich template to you wish to generate?\n" if(!$opt_g);
+   for($i = 0; $i <= $#desc; $i++) {
+      while ($#desc_off >= 0 &&  $i == $desc_off[0]) {
+         print "\nFrom $title[0]: \n" if(!$opt_g);
+         shift(@desc_off);
+         shift(@title);
+      }
+      print "    $i) $desc[$i]\n" if(!$opt_g);
+   }
+   while (1) {
+      if(!$opt_g){
+         print "Select [0-$#desc]: ";
+         $_ = <STDIN>;
+      }
+      else{
+         $_ = <OPT_FILE>;
+      }
+      chomp($_);
+      s/^\s+//;
+      s/\s+$//;
+      next if ($_ !~ m/^\d+$/);
+      next if ($_ > $#desc);
+      last;
+   }
+   $n = $_;
+   
+   # Grab the symbols that must be supplied by the user
+   &gen_template;
+   
+   close(OUT);
+   close(TMPL);
+   
+print <<byebye;
+
+Your template can now be found in the file "$opt_o".
+
+Edit this file and look for comments marked "ToDo:" and fill
+in the application-specific behavior for your function.
+
+byebye
+exit(0);
+}
+#=======================================================================================================
+#=======================================================================================================
+#                                          SUBROUTINE DEFINITIONS  
+#=======================================================================================================
+#=======================================================================================================
+
+#========================================================================
+# Subroutine to display the Usage
+#========================================================================
+sub usage {
+   print STDERR <<USAGE;
+
+Generate templates for VMM-compliant verification components by giving
+answers to a few simple questions.
+
+Usage: $0 {-L libdir{:libdir}} [-XdOq] [-l lang] [-o fname]
+
+-l <lang> option is mandatory if template library have more than one language support.
+
+Options:
+
+   -h or -help  Displays help.
+   -L liblist   Colon-separated list of user-defined template directories.
+   -X           Do not include the standard templates.
+   -d           Display the standard templates location.
+   -l $langs    Generate template in specified language.
+   -o fname     Generate the template in the specified file (Applicable for individual templates).
+   -O           Overwrite the output file if it already exists (Applicable for individual templates).
+   -q           run vmmgen in quick mode for Complete Env Generation, asks minimum questions (Applicable for complete environment only).
+                User could also directly provide following options in quick mode(With -q), if user inter-action is not required.
+                -SE    Associate master and slave sub environment with environment[argument:y/n].
+                -RAL   Associate RAL environment [argument:y/n].
+                -RTL   Associate RTL configuration in environment [option:y/n].
+                -ENV   Swith to provide name of environment [argument:env name].
+                -TR    Switch to provide name of transaction class, multiple transaction file can be generated using '+' operator. i.e. -TR apb+atm.
+				-BU    Switch to have the classes extending from a Business Unit Layer which extends from the VMM base class e.g -BU bu
+   -cfg_file    Enable the template generation in quick mode based on the options set in the config. file passed as an argument.
+                Configuration file contain default setting for complete environment.
+                Following are the parameters of options file.
+                ENV = <Name of Environment>
+                SE  = <y/n>
+                RAL = <y/n>
+                RTL = <y/n>
+                TR  = <Name of the transaction>[+<Name of transaction>]
+				BU  = <Name of BU class>
+
+USAGE
+   exit(1);
+}
+#========================================================================
+# Subroutine to start the VMMGEN GUI application
+#========================================================================
+sub gui_mode {
+   $opt_g =1;
+   #While running the GUI get the path of vmmgen_gui(GUI bin file path) first.
+   &get_vmmgen_gui_path();
+   if(!(-e "$gui_path/vmmgen_gui")) {
+      print "\nERROR: GUI script does not exist at required location $gui_path \n\n";
+      exit(0);
+   }
+   else {
+      system("$gui_path/vmmgen_gui");
+      open (OPT_FILE, "vmmgen_opts") or exit(0);
+      $opt_l = <OPT_FILE>;
+      chomp $opt_l;
+   }
+}
+#========================================================================
+# Subroutine to check the valid template directory 
+#========================================================================
+sub check_libdir {
+   local($libdir, $index, $file) = @_;
+   # See what languages are available in that directory
+   $index = 0;
+   foreach $file (<$libdir/*.index>) {
+      $index = 1;
+      $file =~ m#/([^/]*)\.index#;
+      push(@lang, $1);
+   }
+   # If there were no index files in that directory,
+   # it is not a valid template library
+   if (!$index) {
+      if(!$opt_g){
+         printf STDERR "ERROR: Directory \"$libdir\" is not a template library\n";
+      }
+      return;
+   }
+   push(@libdirs, $libdir);
+}
+#========================================================================
+#Subroutine for pushing field/macro name and user defined name into array
+#========================================================================
+sub push_file_var_v {
+   my ($temp_field, $temp_concat_var) = @_;
+   push(@v, $temp_concat_var);
+   push(@var, $temp_field);
+}
+#====================================================================         
+#Subroutine to collect information about available drivers.
+#====================================================================
+sub check_available_driver {
+   if(-e "@libdirs[0]/d_f_bfm.$opt_l") {
+      push(@available_drivers, 2);
+      push(@driver_description, "Driver, Physical-level, Full duplex");
+   }
+   if(-e "@libdirs[0]/d_f_hgh.$opt_l") {
+      push(@available_drivers, 4);
+      push(@driver_description, "Driver, Functional-level, Full duplex");
+   }
+   if(($generator_type == 3) && ($gen_opt == 2)) {
+      if(-e "@libdirs[0]/generic_master_driver.$opt_l") {
+         push(@available_drivers, 5);
+         push(@driver_description, "Generic Master Driver (with MS-Scenario Gen)");
+      }
+   }
+}
+#====================================================================         
+#Subroutine for selecting driver among the available from template lib.
+#====================================================================
+sub select_driver_monitor {
+   my ($component) = @_; 
+   $component_name = "$component"."_chosen";
+   $component_name = "";
+   if(!$opt_g){
+      #print "\nChoose one of following $component available";
+      print "\nChoose one of following $component available" if ($component eq "driver" && (!$opt_q));
+      if ($component eq "driver") {
+         for($i = 0; $i <= $#driver_description; $i++){
+            $j = $i+1;
+            print " \n$j) @driver_description[$i]" if (!$opt_q);
+         }
+      }
+      #elsif ($component eq "monitor") {
+         #for($i = 0; $i <= $#monitor_description; $i++) {
+         #   $j = $i + 1;
+         #   print "\n$j) @monitor_description[$i]";
+         #}
+         #$component_cnt = $#available_monitors + 1;
+      #}
+   }
+   $component_cnt = $#driver_description+1;
+   if ($component eq "driver") { 
+      while($component_name eq "") {
+         if((!$opt_g) && (!$opt_q) ){
+            print "\nSelect [1- $component_cnt]: ";
+            $component_tmp = <STDIN>;
+            &store_selected_options("Driver Type",$component_tmp);
+         }
+         else{
+            $component_tmp = <OPT_FILE>;
+         }
+         $component_tmp = 1 if ($opt_q);
+         chomp($component_tmp);
+         next if ($component_tmp !~ m/^\d+$/);
+         if($component_tmp <= $component_cnt) {
+            $component_name = $component_tmp;
+            push(@drivers, @available_drivers[$component_tmp - 1]);
+         }
+      }
+   }
+   if($component eq "monitor") {
+      #$monitor = @available_monitors[$component_tmp - 1];
+      $monitor = @available_monitors[0];
+      if($monitor == 1 || $monitor == 2 || $monitor == 3 || $monitor == 4)  {
+         &push_file_var_sub("MON","_mon","Monitor Class");
+      }
+   }
+}
+#==============================================================
+#Subroutine for generating directory structure.
+#==============================================================
+sub make_dirs {
+   #form directory structure
+   $vips = "proj";
+   $vip_dir = $vip_name;
+   if(!(-e $vips)) {
+      system("mkdir $vips");
+   }
+   else {
+      print "\nWARNING: Directory $vips already exists!" if(!$opt_g);
+      while (1) {
+         if(!$opt_g){
+            print "\nDo you want to keep new project in existing $vips ? (y/n): ";
+            $overwrite = <STDIN>;
+         }
+         else { 
+            $overwrite = "y";
+         }
+         chomp($overwrite);
+         next if ($overwrite !~ m/^[yYnN]/);
+         last;
+      }
+      if ($overwrite =~ m/^[nN]/) {
+         print "\nNew directory name: " if(!$opt_g);
+         while (1) {
+            $vips = <STDIN> if(!$opt_g);
+            chomp($vips);
+            if(-e $vips) {
+               if(!$opt_g) {
+                  print "\nDirectory $vips already exists";
+                  print "\nNew directory name: ";
+               }
+               next;
+            }
+            elsif(length($vips) == 0) {
+               if(!$opt_g){
+                  print "\nwrong direectory name specified";
+                  print "\nNew directory name: ";
+               }
+               next;
+            } 
+            else {
+               system("mkdir $vips");
+               last;
+            }
+         }
+      }
+   }# end of else
+
+   if(!(-e "$vips/$vip_dir")) {
+      system("mkdir -p $vips/$vip_dir");
+   } 
+   else {
+      print "WARNING: Directory $vips/$vip_dir already exists!\n" if(!$opt_g);
+      while (1) {
+         if(!$opt_g){
+            print "You want to overwrite ? (y/n) [n]: ";
+            $overwrite = <STDIN>;
+         }
+         else {
+            $overwrite = "y";
+         }
+         chomp($overwrite);
+         $overwrite = "n" if ($overwrite eq "");
+         next if ($overwrite !~ m/^[yYnN]/);
+         system("rm -rf $vips/$vip_dir/") if ($overwrite =~ m/^[yY]/);
+         system("mkdir $vips/$vip_dir/") if ($overwrite =~ m/^[yY]/);
+         last;
+      }
+      if ($overwrite =~ m/^[nN]/) {
+         print "\nNew directory name: " if(!$opt_g);
+         while (1) {
+            $vip_dir = <STDIN> if(!$opt_g);
+            chomp($vip_dir);
+            if(-e "$vips/$vip_dir") {
+               if(!$opt_g){
+                  print "\nDirectory $vip_dir already exists in $vips";
+                  print "\nNew directory name: ";
+               }
+               next;
+            }
+            elsif(length($vip_dir) == 0) {
+               if(!$opt_g){
+                  print "\nwrong direectory name specified";
+                  print "\nNew directory name: ";
+               }
+               next;
+            } 
+            elsif ($vip_dir !~ m/^[a-zA-Z_][a-zA-Z0-9_]*$/) {
+               if(!$opt_g){
+                  print STDERR "ERROR: \"$vip_dir\" is not a valid identifier.\n";
+               }
+               next;
+            } 
+            else {
+               system("mkdir $vips/$vip_dir");
+               last;
+            }
+         }
+      }
+   }
+   $env_dir  = "$vips/$vip_dir/env";
+   $proj_dir = "$vips";
+   $src_dir  = "$vips/$vip_dir/src/";
+   $run_dir  = "$vips/$vip_dir/run";
+   $test_dir = "$vips/$vip_dir/tests"; 
+   $hdl_dir  = "$vips/$vip_dir/hdl"; 
+   $include_dir = "$vips/$vip_dir/include"; 
+   system("mkdir $env_dir");
+   system("mkdir $vips/$vip_dir/doc") if(!(-e "$vips/$vip_dir/doc"));
+   system("mkdir $vips/$vip_dir/examples") if(!(-e "$vips/$vip_dir/examples"));
+   system("mkdir $vips/$vip_dir/include") if(!(-e "$vips/$vip_dir/include"));
+   system("mkdir $src_dir") if(!(-e "$src_dir"));
+   system("mkdir $run_dir") if(!(-e "$run_dir"));
+   system("mkdir $test_dir") if(!(-e "$test_dir"));
+   system("mkdir $hdl_dir") if(!(-e "$hdl_dir"));
+   &create_rtlcfg_dir() if($rtl_cnfg_en == 1);
+}# end of subroution make_dirs
+
+#==============================================================
+#Sub routine to generate the Scenario name array
+#==============================================================
+sub gen_scen_names {
+   for(my $tmp = 0;$tmp <= $tr_count;$tmp++)  {
+      push(@scen_name,@tr_name[$tmp]."_basic_scen");
+   }
+}
+#==============================================================
+#Sub routine to generate the ENV
+#==============================================================
+sub gen_env {
+   $temp_path = @f[$fltoopen];
+   $temp_name = "@libdirs[0]"."/"."$temp_path";
+   if (!open(TMPL, "< $temp_name")) {
+      print STDERR "ERROR: Cannot open $temp_name for reading: $!\n"  if(!$opt_g);
+      exit(1);
+   }
+   close(TMPL);
+}
+#==============================================================
+#Sub routine for generating templates
+#==============================================================
+sub gen_template {
+   my($next) = @_;
+   # Grab the symbols that must be supplied by the user
+   if (!open(TMPL, "< $fname[$n]")) {
+      print STDERR "ERROR: Cannot open $fname[$n] for reading: $!\n" if(!$opt_g);
+      exit(1);
+   }
+   while ($_ = <TMPL>) {
+      next if ($_ =~ m/#include/);
+      if ($_ =~ m/<([A-Z_]+\d*)>\s+(.*)\s*$/) {
+         push(@var, $1);
+         push(@d, $2);
+         next;
+      }
+      if ($_ =~ m/\[([a-z_]+)\]\s+(.*)\s*$/) {
+         $def{$1} = $2;
+         next;
+      }
+   }
+   close(TMPL);
+   # Ask for their value
+   &ask_value;
+   # Write template to file
+   &write_file;
+}
+#==============================================================
+#Sub routine for capturing user defined values.
+#==============================================================
+sub ask_value {  
+   for($i = 0; $i <= $#d; $i++) {
+      while (1) {
+         if(!$opt_g){
+			if(($d[$i] =~ m/.*BU.*/) && ($opt_BU ne ""))
+				{ 
+					print "BU class \'$opt_BU\' is already defined from command line.\n";
+					$_ = $opt_BU; 
+				}
+            else
+			{
+            	print "$d[$i] ?: ";
+				$_ = <STDIN>;
+         		chop($_);
+			}
+         }
+         else {
+            $_ = <OPT_FILE>;
+         	chop($_);
+         }
+         s/^\s+//;
+         s/\s+$//;
+         if ($_ !~ m/^[a-zA-Z_][a-zA-Z0-9_.]*$/) {
+            print STDERR "ERROR: \"$_\" is not a valid identifier.\n" if(!$opt_g);
+            next;
+         }
+         if ($_ =~ m/^((rvm)|(vmm))/) {
+            print STDERR "ERROR: name cannot start with \"$1\".\n" if(!$opt_g);
+            next;
+         }
+         push(@v, $_);
+         last;
+     }
+   }
+}
+#==============================================================
+#Subroutine for user interaction for top env type ral/normal.
+#==============================================================
+sub get_envtype {
+   # User interaction logic to choose top env type.
+   while($env_type_2 eq "") {
+      if(!$opt_g){
+         print "\nWould you be associating RAL models in your environment class? enter (y/n): ";
+         $_ = <STDIN>;
+         &store_selected_options("RAL env?",$_);
+      }
+      else {
+         $_ = <OPT_FILE>;
+      }
+      chomp($_);
+      next if (length($_) > 1);
+      $env_type_2 = "ral" if($_ =~ m/^[yY]/);
+      $env_type_2 = "simple" if($_ =~ m/^[nN]/);
+   }
+}
+#=====================================================================================
+# Subroutine to collect the transaction names in the case of MSS and store it in array
+#=====================================================================================
+sub get_tr_names {
+   $first_bu_pass = 1;
+   &get_data_class_name();
+   do {
+      if(!$opt_g) {
+         print "\nWould you like to have another transaction class? enter (y/n): ";
+         $_ = <STDIN>;
+         &store_selected_options("One more transaction?",$_);
+      }
+      else{
+         $_ = <OPT_FILE>;
+      }
+      chomp($_);
+      if (!(length($_) > 1)) {
+         if($_ =~ m/^[yY]/) {
+            &get_data_class_name();
+            $next=1;
+         } 
+         elsif ($_ =~ m/^[nN]/) {
+            $next=0;
+         }
+         else {
+            print STDERR "ERROR: \"$_\" is not a valid identifier.\n" if(!$opt_g);
+            $next=1;
+         }
+      }
+      else {
+         $next = 1;
+      } 
+   } while ($next);
+   $tr_count  = $#tr_name;  
+   $num_of_tr = @tr_name ; #Store the number of transaction classes
+}
+
+
+#==============================================================
+#Subroutine for user interaction for BU class name.
+#==============================================================
+
+sub get_bu_class_name {
+			 
+			 do {
+			 	print "\nIs this transaction class extended from a BU class? enter (y/n): ";
+        	 	$bu_y_n = <STDIN>;
+         		&store_selected_options("BU class for this transaction?",$bu_y_n);
+      	 		chomp($bu_y_n);
+	     		if (!(length($bu_y_n) > 1)) {
+         			if($bu_y_n =~ m/^[yY]/) {
+						print "\nEnter the name of BU class \(Default:vmm_data\) : ";
+         				$bu_temp_name = <STDIN>;   
+         				&store_selected_options("Transaction Name",$bu_temp_name);
+						chomp($bu_temp_name);
+						#&push_file_var_v("BU",$bu_name);
+						push(@bu_name, $bu_temp_name);
+					#	print "\n*******".$bu_temp_name."****\n";
+            			$next=0;
+         			} 
+         			elsif ($bu_y_n =~ m/^[nN]/) {
+						$bu_temp_name = "vmm_data";
+						push(@bu_name, $bu_temp_name);
+#						&push_file_var_v("BU",$bu_name);
+            			$next=0;
+         			}
+				}
+         		else {
+            		print STDERR "\nERROR: \"$bu_y_n\" is not a valid identifier.\n" if(!$opt_g);
+            		$next=1;
+         		}
+   	  	 	} while ($next);
+
+}
+
+
+#==============================================================
+#Subroutine for user interaction for transaction names.
+#==============================================================
+sub get_data_class_name {
+   while(1) {
+      if(!$opt_g){
+         print "\nEnter the name of transaction class : ";
+         $_ = <STDIN>;   
+         &store_selected_options("Transaction Name",$_);
+		 if($opt_BU eq "")
+		 {
+			 &get_bu_class_name();
+			 $first_bu_pass=0;
+		 }
+		 else
+		 {
+			 if($first_bu_pass == 1)
+			 {
+			 	print "\nBU class name passed through command option -BU is $opt_BU\n";
+			 	$first_bu_pass=0;
+			 }
+			 else
+			 {
+				 &get_bu_class_name();
+				 $first_bu_pass=0;
+			 }
+		 }
+				 
+      } #IF
+      else{
+         $_ = <OPT_FILE>;
+      } #ELSE
+      chomp($_);
+      s/^\s+//;
+      s/\s+$//;
+      if ($_ !~ m/^[a-zA-Z_][a-zA-Z0-9_.]*$/) {
+         print STDERR "ERROR: \"$_\" is not a valid identifier.\n" if(!$opt_g);
+         next;
+      } 
+      else {
+         push(@tr_name,$_); 
+         last;
+      }
+   } #WHILE
+}
+#==============================================================
+#Subroutine for user interaction for sb enable/disable 
+#==============================================================
+sub get_scoreboard_selection {
+   if((!$opt_g) && (!$opt_q)){
+      $sb_text = "\nWould you like to implement scoreboard(vmm_sb_ds)?\nSelect(y/Y/n/N)";
+      $sb_enable = &get_yesNo_selection($sb_text,"y",1);
+      &store_selected_options("Scoreboard?","y") if ($sb_enable == 1);
+      &store_selected_options("Scoreboard?","n") if ($sb_enable == 0);
+  }
+  elsif($opt_q) {
+     #Enable scoreboarding in Quick mode
+     $sb_enable = 1; 
+  }
+   
+}
+#==============================================================
+#Subroutine for user interaction for sb integration method.
+#==============================================================
+sub get_sbmethod {
+   if((!$opt_g) && (!$opt_q)){
+      print "\nSelect scoreboard integration method in the environment";
+      print "\n1) Integration with callback extensions";
+      print "\n2) Integration with extended vmm_xactor";
+      print "\n3) Integration with vmm_channel by sinking an output channel" ;
+      print "\n4) Integration with vmm_notify by notification indication" ;
+      print "\n5) Integration with vmm_notify by notification callback" ;
+      print "\n6) Integration with vmm_notify by registration with a notification";
+      print "\n\nNOTE: Add compile time option +define+VMM_SB_DS_IN_STDLIB\n";
+   }
+   if (!$opt_q) {
+     $im      = &get_digit_selection(1,6);
+     $user_im = $im;
+     &store_selected_options("Scoreboard Integration Method",$user_im);
+   }
+   else { 
+     $user_im = 1;
+   }
+}
+#==============================================================
+#Subroutine for writing in to file
+#==============================================================
+sub write_file {
+   # Provide default values for unspecified command-line options (Individual Template)
+   if ($gen_opt == 2) {
+      if (!$opt_o) {
+         if ($def{'filename'}) {
+            $opt_o = $def{'filename'};
+            # Substitutes symbols
+            for ($i = 0; $i <= @var; $i++) {
+               $opt_o =~ s/(\b|_)$var[$i]/\1$v[$i]/g;
+            }
+            $opt_o = "$opt_o.$fext[0]";
+         } 
+         else {
+            $opt_o = "$v[0].$fext[$fltoopen]" if($count == 0);
+         }
+      }
+   }
+   else {
+      $opt_o = "@f[$fltoopen]";
+   }
+   # Check if we are about to overwrite a file
+   if($count == 0) {
+      while (!$opt_O && -e $opt_o) {
+         print "WARNING: File \"$opt_o\" already exists!\n" if(!$opt_g);
+         while (1) {
+            if(!$opt_g){
+               print "Overwrite? (y/n) [n]: ";
+               $_ = <STDIN>;
+            }
+            else {
+               $_ = 'y';
+            }
+            chomp($_);
+            s/^\s+//;
+            s/\s+$//;
+            $_ = "n" if $_ eq "";
+            if ($_ !~ m/^[yYnN]/){
+               next;
+            }
+            else {
+               last;
+            }
+         }
+         last if ($_ =~ m/^[yY]/);
+         if(!$opt_g){
+            print "New filename: ";
+            $_ = <STDIN>;
+         }
+         chomp($_);
+         s/^\s+//;
+         s/\s+$//;
+         $opt_o = $_;
+      }
+   }
+   # Generate the template and substituting the symbols
+   if($next == 1 && $count > 0 ) {
+      if (!open(OUT, ">> $src_dir$opt_o")) {
+         print STDERR "ERROR: Cannot open $opt_o for writing: $!" if(!$opt_g);
+         exit(1);
+      } 
+   } 
+   else {
+      if (!open(OUT, "> $src_dir$opt_o")) {
+         print STDERR "ERROR: Cannot open $opt_o for writing: $!" if(!$opt_g);
+         exit(1);
+      }
+   }
+   if($gen_opt == 2) {
+      if (!open(TMPL, "< $fname[$n]")) {
+         print STDERR "ERROR: Cannot open $templates/$fname[$n] for reading: $!" if(!$opt_g);
+         exit(1);
+      }
+      for($t=0;$t < @fnames;$t++) {
+         $exist=1 if($opt_o == $fnames[$i]);
+      }
+      if($exist != 1)  {
+         push(@fnames, $opt_o);
+      }
+   }
+   else {
+      if (!open(TMPL, "< @libdirs[0]/@f[$fltoopen]")) {
+         print STDERR "ERROR: Cannot open $templates/$fname[$fltoopen] for reading: $!" if(!$opt_g);
+         exit(1);
+      }
+   }
+
+   $write =1;
+   $line_cnt =0;
+   while ($_ = <TMPL>) {
+      #Strip out the filename
+      next if($_ =~ m/\[([a-z_]+)\]\s+(.*)\s*$/);
+      # Strip out symbol index
+      next if ($_ =~ m/<([A-Z0-9_]+)>\s+(.*)\s*$/ && $_ !~ m/#include/);
+      next if ($_ =~ m/\/\/\[([A-Z0-9_]+)\]\s+(.*)\s*$/);
+      #Search the repeat pattern, If found then replace specific Symbols with required values 
+      #Call a function to decide the no of iterations of print and Replace the symblos matched
+      #in $_ with required values
+      $num_of_rpt =  &repeat_code();
+      for($rpt_cnt=0; $rpt_cnt <$num_of_rpt ;$rpt_cnt++) {
+         &replace_rpt_vars() if($num_of_rpt > 1);
+         # Substitutes symbols
+         for ($i = 0; $i <= @var; $i++) { 
+            #Replacement of symbols
+            if( ($temp_kind == 6) and ($_ =~ /(define)/)) {}
+            else { 
+               $_ =~ s/(\b|_)$var[$i](\b|_)/\1$v[$i]\2/g;
+            }
+         }  
+         for ($i = 0; $i <= @var; $i++) {  
+            #This logic is placed to convert the guard macros in a CAPS
+            if($_ =~ /(`ifndef|`define)(\s+)($v[$i]\S*)/) {
+               #Converting the guard macro in upper case
+               $temp = uc($3); 
+
+               #Replacing the guard macro from lower case to upper
+               $_ =~ s/(`ifndef|`define)(\s+)($v[$i]\S*)/\1\2$temp/g;  
+            }
+            if($_ =~ /(`endif)(\s*)(\/\/)(\s*)($v[$i]\S*)/) {
+               #Converting the guard macro in upper case
+               $temp = uc($5);  
+
+               #Replacing the guard macro from lower case to upper
+               $_ =~ s/(`endif)(\s*)(\/\/)(\s*)($v[$i]\S*)/\1\2\3\4$temp/g;
+            }
+         } 
+         # Add macro
+         if($temp_kind == 1) {
+            if($count > 0){
+               if($line_cnt <7 ) {
+                  $write =0;
+               }
+               else {
+                  $write =1;
+               }
+            }
+         }
+         if($array_h{"opt_m"}) {
+            &with_macro();
+         } 
+         else {
+            &without_macro ();
+         }
+         $line_cnt++;
+      } #FOR
+      $v[$rpt_sym_in] = $rpt_org_val if($num_of_rpt > 1) ; 
+   } #WHILE
+   if($temp_kind == 1) {
+      for($i = 0; $i <= $#var; $i++) { delete $var[$i];}
+      for($i = 0; $i <= $#v; $i++) { delete $v[$i];}
+      for($i = 0; $i <= $#d; $i++) { delete $d[$i];}
+   }
+   close(OUT);
+   close(TMPL);
+}
+#======================================================================
+# Logic for with normal (with out macros) option.
+#======================================================================
+sub without_macro {
+   $action = "START"; 
+   for ($tmp= 0; $tmp < 2; $tmp++) {
+      chomp ($action);
+      #Check for MACRO_START if found disable printing 
+      &common_sub ("MACRO","$action");  
+
+      #Check for PERF_START if found disable printing 
+      &common_sub ("PERF","$action") if(!$array_h{"opt_p"});
+
+      #Call for checking RAL_START/COMMON_START for top env
+      &check_ralstart() if ($action eq "START"); 
+      &check_ralend() if ($action eq "END"); 
+
+      #Call for checking MULT_DRV_START/SING_DRV_START strips of as per
+      #user choice for multiple/single driver selection
+      &check_multi_single_drv("$action");     
+
+      #Check for GEN_SL_RCVR_START if found disable printing 
+      &common_sub("GEN_SL_RCVR","$action") if(($gen_slv_used == 0) and ($gen_opt == 1));
+
+      #Check for Physical/Functional driver
+      &common_sub("FULL_DUPLEX_FNC_BFM","$action") if($drivers[0] == 2);
+      &common_sub("FULL_DUPLEX_PHY_BFM","$action") if($drivers[0] == 4);
+
+      &common_sub("MNTR_OBS_MTHD_TWO_NQ","$action") if($opt_q);
+      &common_sub("MNTR_OBS_MTHD_TWO_Q","$action") if(!$opt_q);
+
+      #Chop-off the code related to Subenv if Its not selected
+      &common_sub("SUBENV_EN","$action") if($env_type_1 eq "with_out_se");
+      #Chop-off the code related to Env if Its not selected
+      &common_sub("SUBENV_DIS","$action") if($env_type_1 eq "with_se");
+
+
+      #Chop-off the logic of SB if SB is disabled
+      &common_sub("SCBD_EN","$action") if($sb_enable == 0);
+
+      #Strip-off the code of Multi domain RAL BFM is single domain is used,
+      &common_sub ("MULT_DM","$action") if($ral_bfm_type == "1");
+
+      #Strip-off the code of Single domain RAL BFM is multi domain is used,
+      &common_sub ("SING_DM","$action")  if($ral_bfm_type == "2");
+
+      #Chopping fort the generator type
+      &monitor_obs_tlm_driver ("$action","generator");
+        
+      #Generic Driver chopping
+      &driver_type_chop("$action");
+       
+      if($sb_enable && ($vmm_ver eq "vmm1.1" || ($vmm_ver eq "vmm1.2" && $mon_obs_conn == 1) )) { 
+          #Ensuring proper value of scoreboard integration method in all cases
+          &assign_sb_int_method();
+
+          #Check for scoreboard macros and if found disable printing
+          &monitor_obs_tlm_driver ("$action","sb");
+       }
+       else {
+          &rtl_config_no_sb_macro("no_sb","$action");
+       }
+       #Stripping off Logic for symbols added for VMM-1.2 
+       &vmm12_macros("$action") if($vmm_ver eq "vmm1.2"); 
+       &print_out() if ($action eq "START");
+       if($write == 0 ) {
+         $action = "END";
+       }
+       else {
+         $tmp = 2;
+       }  
+    }  
+}
+#======================================================================
+# Logic for with macros option.
+#======================================================================
+sub with_macro {
+   $action = "START";
+   for ($m = 0; $m < 2; $m++) {
+      chomp ($action);
+      #Check for NORMAL_START if found disable printing 
+      &common_sub ("NORMAL","$action");
+  
+      #Check for PERF_START if found disable printing 
+      &common_sub("PERF","$action") if(!$array_h{"opt_p"});
+
+      #Call for checking RAL_START/COMMON_START for top env
+      &check_ralstart() if ($action eq "START"); 
+      &check_ralend() if ($action eq "END"); 
+      
+      #Call for checking MULT_DRV_$action/SING_DRV_START strips of as per
+      #user choice for multiple/single driver selection
+      &check_multi_single_drv("$action");     
+
+      #Check for GEN_SL_RCVR_START if found disable printing 
+      &common_sub("GEN_SL_RCVR","$action") if(($gen_slv_used == 0) and ($gen_opt == 1));
+
+      #Check for Physical/Functional driver
+      &common_sub("FULL_DUPLEX_FNC_BFM","$action") if($drivers[0] == 2);
+      &common_sub("FULL_DUPLEX_PHY_BFM","$action") if($drivers[0] == 4);
+
+      &common_sub("MNTR_OBS_MTHD_TWO_NQ","$action") if($opt_q);
+      &common_sub("MNTR_OBS_MTHD_TWO_Q","$action") if(!$opt_q);
+
+      #Chop-off the code related to Subenv if Its not selected
+      &common_sub("SUBENV_EN","$action") if($env_type_1 eq "with_out_se");
+      #Chop-off the code related to Env if Its not selected
+      &common_sub("SUBENV_DIS","$action") if($env_type_1 eq "with_se");
+
+      #Chop-off the logic of SB if SB is disabled
+      &common_sub("SCBD_EN","$action") if($sb_enable == 0);
+      
+      #Strip-off the code of Multi domain RAL BFM is single domain is used,
+      &common_sub ("MULT_DM","$action") if($ral_bfm_type == "1"); 
+
+      #Strip-off the code of Single domain RAL BFM is multi domain is used,
+      &common_sub("SING_DM","$action") if($ral_bfm_type == "2");
+
+      if($sb_enable && ($vmm_ver eq "vmm1.1" || ($vmm_ver eq "vmm1.2" && $mon_obs_conn == 1) )) { 
+         #Ensuring proper value of scoreboard integration method in all cases
+         &assign_sb_int_method();
+
+         #Check for scoreboard macros and if found disable printing
+         &monitor_obs_tlm_driver ("$action","sb");
+       }
+      else {
+         &rtl_config_no_sb_macro("no_sb","$action");   
+      }
+      #Chopping fort the generator type
+      &monitor_obs_tlm_driver ("$action","generator")
+
+      #Generic Driver chopping
+      &driver_type_chop("$action");
+ 
+      &vmm12_macros("$action") if($vmm_ver eq "vmm1.2"); 
+      
+      #Call to print line to the files        
+      &print_out() if ($action eq "START");
+      
+      #Check for NORMAL_END to enable printing.
+      if($write == 0) {
+         $action = "END";
+      }
+      else {
+        $m = 2;
+      }
+   }
+}    
+#==============================================================
+# Subroutine to check for available monitor in template library
+#==============================================================
+sub check_available_monitors {
+   my @array = ("@libdirs[0]/m_h_bfm.$opt_l","@libdirs[0]/m_f_bfm.$opt_l",
+                "@libdirs[0]/m_h_hgh.$opt_l","@libdirs[0]/m_f_hgh.$opt_l");
+   my %array = (1,"Monitor, Physical-level, Half duplex",2,"Monitor, Physical-level, Full duplex",
+                3,"Monitor, Functional-level, Half duplex",4,"Monitor, Functional-level, Full duplex");
+   my $var =1;
+   foreach $array (@array) {
+      if(-e $array) {
+         push (@available_monitors, $var);
+         push (@monitor_description,$array{$var});
+      }
+      $var++;
+   }
+}
+#==============================================================
+#Subroutine for printing a line.
+#==============================================================
+sub print_out {
+   if($write ==1) {
+      #Make sure that any symbol should be in this format <CAPS_NAME>_START and <CAPS_NAME>_END
+      print OUT $_ if(($_ !~ m/^\s*\S+_START\s*$/) && ($_ !~ m/^\s*\S+_END\s*$/));
+   }
+}
+#==================================================================
+#Subroutine to increment the macro_counter and disable writing
+#==================================================================
+sub macro_cnt_incr {
+   $macro_counter++;
+   $write = 0;
+}
+#==================================================================
+#Subroutine  to drecrement the macro counter and checking it with zero
+#==================================================================
+sub macro_cnt_decr {
+   $macro_counter--;
+   if($macro_counter == 0) {
+      $write = 1; 
+   }
+}
+#==================================================================
+#Subroutine for checking gen_slv_receiver
+#==================================================================
+sub common_sub {
+   my ($component,$phase) = @_; 
+   my $string = "";
+   $string = "$component"."_"."$phase";
+   if(($_ =~ m/$string/) && ($phase eq "START")) {
+      &macro_cnt_incr();
+      $common_count{$component} = $macro_counter;
+   }
+   &macro_cnt_decr() if ((($_ =~ /$string/) and ($macro_counter == $common_count{$component}))
+                         && ($phase eq "END")) ;
+}
+#==================================================================
+#Subroutine for checking ral-specific/normal code start in top env
+#==================================================================
+sub check_ralstart {
+ if(($env_type_2 eq "ral" and $_ =~ m/COMMON_START/) ||
+    ($env_type_2 eq "simple" and $_ =~ m/RAL_START/)   ) {
+         &macro_cnt_incr();
+         $ral_count = $macro_counter;
+  }
+}
+#==================================================================
+#Subroutine for checking ral-specific/normal code end in top env
+#==================================================================
+sub check_ralend {
+   if($env_type_2 eq "ral") {
+       if (($_ =~ m/COMMON_END/) and ($macro_counter == $ral_count)) {
+          &macro_cnt_decr();
+       }
+    } elsif($env_type_2 eq "simple") {
+       if (($_ =~ m/RAL_END/) and ($macro_counter == $ral_count)) {
+          &macro_cnt_decr(); 
+       }
+   }
+}
+#============================================================================================== 
+# Subroutine to chop-off the logic of Scoreboarding methods (_START/_END)
+# Subroutine to chop-off the code of RTL configuration (_START/_END)
+#==============================================================================================
+sub rtl_config_no_sb_macro {
+   my ($component,$phase) = @_;
+   my $string = "";
+   $string = "SCB_INT_[_A-Z]+_".$phase if($component eq  "no_sb");
+   $string = "RTLCFG_".$phase          if($component eq "rtlcfg");
+   chomp ($component,$phase,$string);
+   if($_ =~ m/$string/ && $phase eq "START") {
+      &macro_cnt_incr();
+      $drv_mon_tlm{$component} = $macro_counter;
+   }
+   &macro_cnt_decr() if (($_ =~ m/$string/) and ($macro_counter eq $drv_mon_tlm{$component}) && ($phase eq "END"));
+}
+#========================================================================
+#Subroutine for checking Multi/single driver start/end as per user choice 
+#========================================================================
+sub check_multi_single_drv {
+   my ($phase) = @_;
+   my $string = "";
+   $string = "SING_DRV_".$phase if ($multi_driver_enable == 1);
+   $string = "MULT_DRV_".$phase if ($multi_driver_enable == 0);
+   if($gen_opt == 1) {
+      if(($_ =~ m/$string/) && ($phase eq "START")) {
+         &macro_cnt_incr();
+         $single_drv_count = $macro_counter;
+       }
+       elsif (($_ =~ m/$string/) and (($macro_counter == $single_drv_count) && $phase eq "END")) {
+          &macro_cnt_decr();          
+       }
+   }
+   #In case of Ind. template keep the single driver by default
+   elsif($gen_opt == 2) {
+      if(($_ =~ m/MULT_DRV_$phase/) && ($phase eq "START")) {  
+         &macro_cnt_incr();
+         $multi_drv_count = $macro_counter;
+      }
+      elsif (($_ =~ m/MULT_DRV_$phase/) and ($macro_counter == $multi_drv_count && $phase eq "END")) { 
+         &macro_cnt_decr();
+      }
+   }     
+}
+#===================================================================
+# Subroutine to assign scoreboard integration method.
+#===================================================================
+sub assign_sb_int_method {
+   if ((($temp_kind != 2) and ($temp_kind != 3)) and ($im != 2)) {
+      $im = 1;
+   } 
+   else {
+      $im = $user_im;   
+   }
+}
+#===================================================================
+# Subroutine to generate template for compleate environment.
+#===================================================================
+sub gen_env_file {
+   my ($template_name, $concat_var,$temp_kind) = @_;
+   chomp($template_name,$concat_var,$template_name); 
+   if ($temp_kind eq "") {
+      $temp_kind = 0;
+   }
+   else { 
+      $temp_kind = $temp_kind;
+   }
+   if(-e "@libdirs[0]/$template_name.$opt_l") { 
+      push(@f, "$template_name.$opt_l");
+      &gen_env;
+      &write_file;
+      %system_hash = (2,"mv $src_dir$opt_o $env_dir/$concat_var.$opt_l",
+                     3,"mv $src_dir$opt_o $env_dir/$concat_var.$opt_l",
+                     6,"mv $src_dir$opt_o $run_dir/$concat_var",
+                     7,"mv $src_dir$opt_o $env_dir/$concat_var.ralf",
+                     9,"mv $src_dir$opt_o $test_dir/$concat_var.$opt_l",
+                     10,"mv $src_dir$opt_o $hdl_dir/$concat_var.$opt_l",
+                     11,"mv $src_dir$opt_o $include_dir/$concat_var.$opt_l",
+                     12,"mv $src_dir$opt_o $proj_dir/$concat_var");
+      %fname_hash = (2,"$concat_var.$opt_l",3,"$concat_var.$opt_l",6,"$concat_var",7,"$concat_var.ralf",
+                    9,"$concat_var.$opt_l",10,"$concat_var.$opt_l",12,"$concat_var");
+      %envdirfiles_hash = (2,"$concat_var.$opt_l",3,"$concat_var.$opt_l",7,"$concat_var.ralf");
+      if (exists $system_hash{$temp_kind}) {
+         system ($system_hash{$temp_kind});
+         push (@fname,$fname_hash{$temp_kind});
+         push (@envdirfiles, $envdirfiles_hash{$temp_kind}) if (exists $envdirfiles_hash{$temp_kind});
+      }
+      else {
+         system("mv $src_dir$opt_o $src_dir$concat_var.$opt_l");
+         push(@fnames, "$concat_var.$opt_l");
+         push(@srcdirfiles, "$concat_var.$opt_l");
+      }
+      $fltoopen++;
+   }
+   else {
+      if(!$opt_g){
+         print "\nWarning: template $template_name.$opt_l does not exists";
+      }
+   }
+}
+#=====================================================================
+#Subroutine to identify template which needs templates specific logic.
+#=====================================================================
+sub identify_temp_kind {
+   @values = split('/', @fname[$n]);
+   #gets last splited value
+   $last_split_value = @values[$#values];
+   my @ask_perf = ("tb_env.sv","tb_env_with_se.sv","ral_env.sv","d_f_bfm.sv","d_f_hgh.sv","d_h_bfm.sv",
+                   "d_h_hgh.sv","generic_master_driver.sv","m_f_bfm.sv","m_f_hgh.sv","m_h_bfm.sv","m_h_hgh.sv");
+   my @ask_macro = ("TR.sv","TX.sv","d_f_bfm.sv","d_f_hgh.sv","d_h_bfm.sv","d_h_hgh.sv", 
+                   "generic_master_driver.sv","generic_slave_receiver.sv","m_f_bfm.sv","m_f_hgh.sv", 
+                   "m_h_bfm.sv","m_h_hgh.sv","ral_bfm_1d.sv","ral_bfm_md.sv","ral_env.sv","tb_env.sv",
+                   "tb_env_with_se.sv","cfg.sv","subenv.sv","test_registry.sv","tb_env_with_se.sv","generic_env.sv");
+   my @ask_xact_phasing = ("d_f_bfm.sv","d_f_hgh.sv","d_h_bfm.sv","d_h_hgh.sv","generic_master_driver.sv",
+                           "generic_slave_receiver.sv","m_f_bfm.sv","m_f_hgh.sv","m_h_bfm.sv","subenv.sv",
+                           "m_h_hgh.sv","tb_env_with_se.sv");
+
+   if($vmm_ver eq "vmm1.2") {
+    push(@ask_macro,"scenario.sv");
+    push(@ask_macro,"ms_scenario.sv");
+   }
+   foreach $ask_perf (@ask_perf) {
+      chomp ($ask_perf);
+      $ask_perf_Q = 1 if($last_split_value eq $ask_perf);
+   }
+   foreach $ask_macro (@ask_macro) {
+      chomp ($ask_macro);
+      $ask_macro_Q = 1 if($last_split_value eq $ask_macro);
+   }
+   foreach $ask_xact_phasing (@ask_xact_phasing) {
+      chomp ($ask_xact_phasing);
+      $ask_xact_phasing_Q = 1 if($last_split_value eq $ask_xact_phasing); 
+   }
+   if(($last_split_value eq "tb_env.sv") || ($last_split_value eq "tb_env_with_se.sv") 
+       || ($last_split_value eq "test_registry.sv") ) {
+      $ask_test_phasing_Q = 1; 
+   }
+   my %array = ("scenario"=>1,"tb_env"=>"2","ral_env"=>"3","generic_master_driver"=>"4",
+                "generic_slave_receiver"=>"5","tb_env_with_se"=>"8","ms_scenario"=>"11","d_h_bfm"=>"13",
+                "d_h_hgh"=>"13","d_f_bfm"=>"13",
+                "d_f_hgh"=>"13","m_f_bfm"=>"14","m_f_hgh"=>"14","m_h_bfm"=>"14","m_h_hgh"=>"14", "sb"=>"14",
+                "cov"=>"14","gen_sb_cb"=>"15");
+   my $var;
+   my $cnt = 0;
+   foreach $key (keys (%array)) {
+      $var = $key.".".$opt_l;
+      if($last_split_value eq "$var") {
+         return $array{$key};
+      }
+      else {
+         $cnt++;
+      } 
+   } 
+   return 0 if($cnt == 17);
+}
+#======================================================================
+#Subroutine to print usage for individual templates
+#======================================================================
+sub print_usage_for_it {
+   $curr_path = `pwd`;
+   chomp($curr_path);
+   $tmpl_path = $curr_path."/".$opt_o;
+   print "\n-------------------------------------------------------------------------";
+   print "\n                      Template generation completed.                     ";
+   print "\n-------------------------------------------------------------------------";
+   print "\nUsage notes :                                                            ";
+   print "\n1) Please find following template in $curr_path: ";
+   foreach $i (@fnames) {
+      print "\n   $i";
+   }
+   print "\n2) Edit file and look for comments marked \"ToDo:\" and fill             ";
+   print "\n   in the application-specific behavior for your function.               ";
+   print "\n                                                                         ";
+   if($array_h{"opt_p"}) {
+      print "\n3) please ensure that file shared/src/vmm_sql_sys_info.c              ";
+      print "\n   from vmm library has been included during compilation.             ";
+   }
+   print "\n--------------------------------------------------------------------------\n\n";
+}
+#======================================================================
+#Subroutine to print usage for individual templates
+#======================================================================
+sub print_usage_for_ce { 
+   print "\n------------------------------------------------------------";
+   print "\n            Template generation completed.                  ";
+   print "\n------------------------------------------------------------";
+   print "\nUsage notes :                                               ";
+   print "\n1) Find the generated files in \"$vips/$vip_dir\" directory.";
+   print "\n                                                            ";
+   print "\n2) Makefile has been placed in run \"$run_dir\" directory.  ";
+   print "\n                                                            ";
+   print "\n3) Edit files and look for comments marked \"ToDo:\" and fill ";
+   print "\n   in the application-specific behavior for your function.  ";
+   print "\n                                                            ";
+   if($array_h{"opt_p"}) {
+      print "\n4) please ensure that file shared/src/vmm_sql_sys_info.c ";
+      print "\n   from vmm library has been included during compilation.";
+   }
+   print "\n------------------------------------------------------------\n\n";
+}
+#======================================================================
+#Subroutine to get the index of variable in array var
+#======================================================================
+sub get_index {
+   my ($local_var) = @_;
+   for ($i = 0; $i <= $#var; $i++) {
+      if(@var[$i] eq $local_var) {
+         return $i;
+         last;
+      }
+   }
+}
+#======================================================================
+#Subroutine for user interface of asking VMM version to be selected
+#======================================================================
+sub select_vmm_version {
+   if(!$opt_g && !$opt_q) {
+      print("Which VMM version would you be using?");
+      print "\n\t 1) VMM-1.1";
+      print "\n\t 2) VMM-1.2";
+   }
+   if(!$opt_q){
+      $vmm_version = &get_digit_selection(1,2,2);   
+      $vmm_ver =  "vmm1.1" if($vmm_version == 1);
+      $vmm_ver =  "vmm1.2" if($vmm_version == 2);
+      &store_selected_options("VMM Version",$vmm_version);
+   }
+   else{
+      $vmm_version = 2;
+      $vmm_ver = "vmm1.2";
+   }
+}
+#================================================================
+# Subroutine to ask user for complete environment/individual template choice   
+#================================================================
+sub get_temp_gen_choice { 
+   if((!$opt_g) && (!$opt_q)){
+      print "\n\t 1) Enter 1 to Create Complete Environment";
+      print "\n\t 2) Enter 2 to Generate Individual Template";
+   }
+   if ($opt_q) {
+      $gen_opt = 1;
+   }
+   else {    
+      $gen_opt = &get_digit_selection(1,2);
+      &store_selected_options("Complete Env.(1) OR Individual Template(2)?",$gen_opt);
+   }
+   if ((!$opt_g) && ($gen_opt == 1) && (!$opt_q)) {
+      $env_default_text = "Would you like to use your names for the classes/files to be generated?\nSelect(y/Y/n/N)" if ((!$opt_g) && ($gen_opt == 1));
+      $default_env_name = &get_yesNo_selection($env_default_text,"n",1);
+      &store_selected_options("Would you like to use your names for the classes/files?","y") if ($default_env_name == 1);
+      &store_selected_options("Would you like to use your names for the classes/files?","n") if ($default_env_name == 0);
+   }
+      $default_env_name = "0" if ($opt_q); 
+}
+#================================================================
+# Subroutine to ask user choice for enabling vmm shorthand macros 
+#================================================================
+sub get_macro_perf_choice {
+   my ($choice,$var) = @_;
+   if((!$opt_g) && (!$opt_q)) {
+      print "\nDo you want to create your own methods [Instead of vmm shorthand macros] ?"if ($choice eq "macro");
+      print "\nDo you want to integrate vmm_perf_analyzer ?" if ($choice eq "perf");
+   }
+   while($array_h{$var} eq "") {
+      if((!$opt_g) && (!$opt_q)) {
+         print "\nSelect [ y/Y/n/N ][Default: n]: "if($choice eq "macro");
+         print "\nSelect [ y/Y/n/N ]: "if($choice eq "perf");
+         $macro_perf_ip = <STDIN>;
+      }
+      else{
+         $macro_perf_ip = <OPT_FILE>;
+      }
+      $macro_perf_ip = "n" if ($opt_q);
+      chomp ($macro_perf_ip);
+      next if (length($macro_perf_ip) > 1);
+      $macro_perf_ip = "n" if($macro_perf_ip eq "" && $choice eq "macro");
+      if($macro_perf_ip =~ m/^[yY]/) {
+         $array_h{$var} = 1 if ($choice eq "perf");
+         $array_h{$var} = 0 if ($choice eq "macro");
+         next;
+      }
+      elsif($macro_perf_ip =~ m/^[nN]/) { 
+         $array_h{$var} = 0 if ($choice eq "perf");
+         $array_h{$var} = 1 if ($choice eq "macro");
+         next;
+      }
+   }
+   if((!$opt_g) && (!$opt_q)) {
+   &store_selected_options("Want to create your own methods[Instead of vmm shorthand macros]?",$macro_perf_ip) if ($choice eq "macro");
+   &store_selected_options("Want to integrate vmm_perf_analyzer?",$macro_perf_ip) if ($choice eq "perf");
+   }
+}
+#================================================================
+#  This is a subroutine to check the path of standard templates
+#================================================================
+sub get_std_tmpl_paths {
+   # Check if the standard templates are visible
+   if (!$opt_X) {
+      # Where is this "vmmgen" run from?
+      $home = ($0 =~ s#bin/[^/]+$##);
+      #Is it from a VCS or VERA installation?
+      my @vmm_path = ("${home}etc/rvm/shared/lib/templates/$vmm_ver","${home}lib/rvm/templates/$vmm_ver");
+      # Look in other standard places...
+      if ($ENV{'VMM_HOME'}) {
+        push (@vmm_path,"$ENV{'VMM_HOME'}/shared/lib/templates/$vmm_ver");
+      }
+      # Maybe under VCS??
+      if ($ENV{'VCS_HOME'}) {
+        push (@vmm_path,"$ENV{'VCS_HOME'}/etc/rvm/shared/lib/templates/$vmm_ver");
+      }
+      # Maybe under VERA??
+      if ($ENV{'VERA_HOME'}) {
+        push (@vmm_path,"$ENV{'VERA_HOME'}/lib/rvm/templates/$vmm_ver");
+      } 
+      foreach $vmm_path (@vmm_path) {
+        $templates = $vmm_path;
+        print "\nUsing template from $templates\n" if ((-d $templates) && (!$opt_g));
+        if (-d $templates) {
+          $check = 1;
+          last;
+        }
+      } 
+      if (!$check)  {
+         print STDERR "ERROR: Cannot find templates. Is one of VMM_HOME, VCS_HOME or VERA_HOME set?.\n";
+         system("rm vmmgen_opts") if ($opt_g);
+         exit(1);
+      }
+   }
+}
+#================================================================
+#  This is a subroutine to check the GUI path for VMMGEN 
+#================================================================
+sub get_vmmgen_gui_path {
+   #Check for VMM_HOME #setting the GUI vmmgen path
+   $gui_path = "$ENV{'VMM_HOME'}/shared/bin"  if ($ENV{'VMM_HOME'});
+ 
+   #Check for VCS_HOME #setting the GUI vmmgen path
+   $gui_path = "$ENV{'VCS_HOME'}/bin" if ($ENV{'VCS_HOME'}); 
+
+   #Check for VCS_HOME 
+   if ($ENV{'VERA_HOME'}) {
+      #setting the GUI vmmgen path for VERA
+      #Logic needs to be added
+   }
+}
+#================================================================
+# Subroutine to ask the Generator-Driver Connection 
+#================================================================
+sub select_gen_drv_conn {
+   $drv_tlm_text = "\nWould you like to associate TLMs in driver [Instead of VMM channels] ?\nSelect [ y/Y/n/N ]";
+   if (!$opt_q) {  
+      $gen_drv_tlm_conn = &get_yesNo_selection($drv_tlm_text,"y",1);
+      &store_selected_options("TLMs in driver [Instead of VMM channels] ?","y") if ($gen_drv_tlm_conn == 1);
+      &store_selected_options("TLMs in driver [Instead of VMM channels] ?","n") if ($gen_drv_tlm_conn == 0);
+   }
+   else {
+     $gen_drv_tlm_conn = 1;
+   }
+   &select_drv_tlm_export() if ($gen_drv_tlm_conn == 1);
+}
+#================================================================
+# Subroutine to select the driver TLM exports
+#================================================================
+sub select_drv_tlm_export {
+   if((!$opt_g) && (!$opt_q)){
+      print "1) Use TLM blocking export (vmm_tlm_b_transport_export)";
+      print "\n2) Use TLM non-blocking forward export (vmm_tlm_nb_transport_fw_export)";
+      print "\n3) Use TLM bidirectional non-blocking export (vmm_tlm_nb_transport_export)";
+      print "\n4) Use TLM bidirectional blocking and non-blocking target socket (vmm_tlm_simple_target_socket)";
+   }
+   if (!$opt_q) {
+      $drv_tlm_export = &get_digit_selection(1,4);    
+      &store_selected_options("TLM selection for generator-driver connection",$drv_tlm_export);
+   }
+   else {  
+      $drv_tlm_export = 4;    
+   }
+   push(@drv_tlm_exports,$drv_tlm_export);
+}
+#================================================================
+# Subroutine to select monitor to observers selection 
+#================================================================
+sub select_mon_obs_conn {
+   if((!$opt_g) && (!$opt_q)){
+      print "\nWhich approach would you like to use for monitor's connection with observers(scoreboard,coverage etc.)?";
+   }
+   if((!$opt_g) && (!$opt_q)){
+      print "\n1) Callbacks approach (vmm-1.1)";
+      print "\n2) Analysis port usage in monitor";
+      print "\n3) Updating data in analysis port using vmm_notify";
+      print "\n4) Using the parametrized notify observer";
+   }
+   if (!$opt_q) {
+     $mon_obs_conn = &get_digit_selection(1,4);
+     &store_selected_options("Monitor-Observer Connection Approach",$mon_obs_conn);
+   }
+   else {
+     $mon_obs_conn = 2;
+   } 
+}
+#==============================================================
+# Subroutine to select the RTL configuration
+#==============================================================
+sub select_rtl_config{
+   $text = "\nWould you be using RTL configurations in your environment? enter (y/n)";
+   $rtl_cnfg_en = &get_yesNo_selection($text,"",1); 
+   &store_selected_options("RTL config enable?","y") if ($rtl_cnfg_en == 1);
+   &store_selected_options("RTL config enable?","n") if ($rtl_cnfg_en == 0);
+}
+#==============================================================
+#  This is a soub-routine to create directory for RTL config. 
+#==============================================================
+sub create_rtlcfg_dir{
+   $rtlcfg_dir = "$run_dir/RTLCFG"; 
+   if(!(-e "$rtlcfg_dir")) {
+      system("mkdir $rtlcfg_dir");
+   }
+   else {
+      print STDERR "RTLCFG directory already exists"; 
+   } 
+   $envcfg_dir = "$run_dir/RTLCFG/env_cfg"; 
+   if(!(-e "$envcfg_dir")) {
+      system("mkdir $envcfg_dir");
+   }
+   else {
+      print STDERR "env_cfg directory already exists"; 
+   } 
+}
+#==============================================================
+#  VMM-1.2 related macro's stripping off logic (_START/_END)
+#==============================================================
+sub vmm12_macros {
+   my ($phase) = @_;
+   #For Driver's channel/TLM ports
+   &driver_tlm($phase);
+   
+   #For Monitor's connection with observers
+   &monitor_obs_tlm_driver($phase,"monitor");
+   
+   #RTL config Macro start
+   &rtl_config_no_sb_macro("rtlcfg",$phase) if ($rtl_cnfg_en != 1);   
+   
+   #Chopping for Env/Testcase explicit/implicit phases.
+   &phasing_chop("tst_phase",$phase);
+   
+   #Chopping for VIPs explicit/implicit phases.
+   &phasing_chop("vip_phase",$phase);
+}
+#==============================================================
+# Driver's TLM/Channel stripping logic (_START/_END)  
+#==============================================================
+sub driver_type_chop {
+   my ($phase) = @_;
+   my $var;
+   my $string = "";
+   $var = "GNRC_" if ($generator_type != 3);
+   $var = "FD_"   if ($generator_type == 3);
+   $string = $var."DRIV_".$phase;
+   if(($_ =~ m/$string/)  && ($phase eq "START")) {
+      &macro_cnt_incr();
+      $drv_chop_cnt = $macro_counter;
+   }   
+   elsif ((($_ =~ /$string/) and ($macro_counter == $drv_chop_cnt)) && ($phase eq "END")) {
+      &macro_cnt_decr();
+   }
+}
+#==============================================================
+# Driver's TLM/Channel stripping logic (_START/_END)  
+#==============================================================
+sub driver_tlm {
+   my ($phase) = @_;
+   my $drv_channel = "DRIV_CHNL_".$phase;
+   my $drv_gen_tlm = "DRIV_GEN_TLM_".$phase;
+   my $drv_tlm_AZ  = "DRIV_TLM_[_A-Z]+_".$phase;
+   if($gen_drv_tlm_conn == 1 ) {
+      #If TLM is selected, Strip-off the code of Channels
+      if($_ =~ m/$drv_channel/ ) {
+         if($phase eq "START"){
+            &macro_cnt_incr();
+            $drv_chnl_cnt = $macro_counter;
+         }
+         elsif ($phase eq "END") {
+            &macro_cnt_decr() if($macro_counter == $drv_chnl_cnt);
+         }   
+      }
+      #Strip -off the code of other TLM ports.
+      &monitor_obs_tlm_driver($phase,"tlm_driver");
+   }
+   else {
+      #If channels are selected,Strip off the code of TLMs
+      if ($_ =~ m/$drv_gen_tlm/ || $_ =~ m/$drv_tlm_AZ/) {
+         if($phase eq "START") {
+            &macro_cnt_incr();
+            $drv_tlm_cnt = $macro_counter;
+         }
+         elsif ($phase eq "END") {
+            &macro_cnt_decr() if($macro_counter == $drv_tlm_cnt);
+         }
+      }
+   }
+}
+#==============================================================
+# Monitor to observer connection stripping logic (_START/_END)  
+# Subroutine for Stripping logic for TLM port selection in driver (_START) 
+#==============================================================
+sub monitor_obs_tlm_driver {
+   my ($phase,$component) = @_;
+   my (@array,$index);
+   my (%array);
+   if ($component eq "monitor") {
+      %array = (1,"ONE_",2,"TWO_",3,"THREE_",4,"FOUR_","string","MNTR_OBS_MTHD_","value",$mon_obs_conn);
+   }
+   elsif ($component eq "tlm_driver") {
+      %array = (1,"B_TRANS_EX_",2,"NB_TRANS_FW_EX_",3,"NB_TRANS_EX_",4,"SMPL_TRGT_SCKT_",
+                  "string","DRIV_TLM_","value",@drv_tlm_exports[0]);
+   }
+   elsif ($component eq "generator") {
+      %array = ("1"=>"ATMC_GEN_","2"=>"SCN_GEN_","3"=>"MS_GEN_","string","","value",$generator_type);
+   }
+   elsif ($component eq "sb") {
+      %array = ("1"=>"ONE_","2"=>"TWO_","3"=>"THREE_",4=>"FOUR_",5=>"FIVE_",6=>"SIX_","string","SCB_INT_MTHD_",
+               "value",$im);
+   }
+   $index =  keys (%array);
+   for($i=1; $i<=$index-2; $i++) {
+      if($i != $array{"value"}) {
+         push(@array,$array{"string"}.$array{$i}.$phase);
+      }  
+   }
+   push(@array,"MS_GEN_START") if (($array{"value"} == 3) && ($drivers[0] == 5) && ($component eq "generator"));
+   foreach $array (@array) {
+      chomp ($array);
+      if ($phase eq "START") {
+         if ($_ =~ /$array/) {
+            &macro_cnt_incr();
+            $drv_mon_tlm{$component} = $macro_counter;
+         }  
+      }
+      elsif ($phase eq "END") {
+         &macro_cnt_decr() if (($_ =~ /$array/) and ($macro_counter == $drv_mon_tlm{$component}));
+      }  
+   }
+     @array = ();
+}
+#================================================================================================ 
+# Subroutine to chop-off the logic of Env/Testcase and VIPs explicit/implicit phases(_START/_END) 
+#================================================================================================
+sub phasing_chop {
+   my ($chop,$phase) = @_;
+   my $var;
+   my $string = "";
+   if($chop eq "tst_phase") {
+       $var = "EXPL_" if ($array_h{"tst_phase"} eq "impl"); 
+       $var = "IMPL_" if ($array_h{"tst_phase"} eq "expl");
+    }
+  if($chop eq "vip_phase") { 
+      $var =  "EXPL_" if ($array_h{"vip_phase"} eq "impl");
+      $var =  "IMPL_" if ($array_h{"vip_phase"} eq "expl");
+   }
+   if ($chop eq "tst_phase") {
+      $string = "TST_".$var.$phase;
+      $chop = "tst_phasing_cnt";
+   }
+   elsif ($chop eq "vip_phase"){ 
+      $string = "XCT_".$var.$phase;
+      $chop = "vip_phasing_cnt";
+   }
+   if(($_ =~ m/$string/) && ($phase eq "START")) {
+      &macro_cnt_incr();
+      $chop{$chop} = $macro_counter;
+   }   
+   elsif ((($_ =~ /$string/) and ($macro_counter == $chop{$chop})) && ($phase eq "END")) {
+      &macro_cnt_decr();
+   }
+}
+#========================================================================================= 
+# Subroutine to select the phasing method of Test-Env
+#=========================================================================================
+sub select_phasing_method {
+   my ($phase,$text) = @_;
+   if((!$opt_g) && (!$opt_q)){
+      print "\nWhich phasing style would you like to use for $text";
+      print "\n\t 1) Implicit Phasing ";
+      print "\n\t 2) Explicit Phasing ";
+   }
+   if ($opt_q) {
+      $phasing = 1;
+   }
+   else {  
+      $phasing = &get_digit_selection(1,2,1);
+      &store_selected_options("Phasing style for $text",$phasing);
+   }
+   $array_h{"$phase"} = "impl" if ($phasing == 1);
+   $array_h{"$phase"} = "expl" if ($phasing == 2);
+}
+#========================================================================================= 
+# Generic Digit selection logic, which is used for various User Interfaces
+#=========================================================================================
+sub get_digit_selection {
+   my($min_range,$max_range,$default_sel)  = @_;
+   my ($option,$def_en);
+   #If the 3rd argument is passed to the function then default option is enabled else not
+   if($default_sel != "") {
+      $def_en = 1; 
+   }
+   else {
+     $def_en = 0;
+   }
+   while(1) {
+      if(!$opt_g){
+         print "\nSelect [$min_range-$max_range][Default :$default_sel]: " if ($def_en == 1);
+         print "\nSelect [$min_range-$max_range]: " if ($def_en == 0);
+         $option = <STDIN>;
+      }
+      else {
+         $option = <OPT_FILE>;
+      }
+      chomp ($option);
+      $option = $default_sel if(($option eq "") && $def_en); #Set the default selection if enter is pressed
+      next if ($option !~ m/^\d+$/);
+      next if (($option < $min_range) or ($option > $max_range));
+      last;
+   }
+   return($option); 
+}
+#========================================================================================= 
+# Generic Yes/No logic, which is used for various User Interfaces
+#=========================================================================================
+sub get_yesNo_selection {
+   my($text,$default_sel,$bin_op)  = @_;
+   my ($option,$def_txt);
+   #If the 2nd argument is passed to the function then default option is enabled else not
+   if($default_sel ne "") {
+      $text = "$text [Default: $default_sel]:"; 
+   }
+   else {
+      $text = "$text:";
+   }
+   while(1) {
+      if(!$opt_g){
+         print "$text"; 
+         $option = <STDIN>;
+      }
+      else{
+         $option = <OPT_FILE>;
+      }
+      chomp ($option);
+      if(($option eq "") && $default_sel ne "")  {
+         $option = $default_sel;}  #Set the default selection if enter is pressed
+         if((length($option) > 1) || ($option !~ m/^[yYnN]/)) {
+            print STDERR "ERROR: \"$option\" is not a valid identifier.\n";
+            next;
+         }
+         last;
+   }
+   #If binary output is enabled then return the 1/0 instead of yes or no.
+   if($bin_op == 1) {
+      $option = 1 if($option =~ m/^[yY]/);
+      $option = 0 if($option =~ m/^[nN]/);
+   }
+   return($option); 
+}
+#==============================================================
+# subroutine for the User-Interface of Generator Selection
+#==============================================================
+sub select_generators{
+   if((!$opt_g) && (!$opt_q)){
+      print "\nWhich VMM generator would you be using?";
+      print "\n1) Atomic Generator";
+      print "\n2) Single Stream Scenario Generator";
+      print "\n3) Multi Stream Scenario Generator";
+   }
+   if (!$opt_q) {
+      $generator_type = &get_digit_selection(1,3,1);
+      &store_selected_options("Generator Type",$generator_type);
+   }
+   else {   
+      $generator_type = 3;
+   }
+}
+#==============================================================
+# Subroutine for the User-Interface for Receiver Selection
+#==============================================================
+sub select_receiver{
+   if(-e "@libdirs[0]/generic_slave_receiver.sv") {
+      $text = "\nDo you want to generate generic slave receiver?\nSelect [ y/Y/n/N ]";
+      if (!$opt_q) { 
+         $gen_slv_used = &get_yesNo_selection($text,"",1);
+         &store_selected_options("Generic Slave Receiver?","y") if ($gen_slv_used == 1);
+         &store_selected_options("Generic Slave Receiver?","n") if ($gen_slv_used == 0);
+      }
+      else { 
+         $gen_slv_used = 1;
+      } 
+      print "\nNo slave receiver have been Chosen\n" if($gen_slv_used == 0 && !$opt_g);
+   }
+   else {
+      $gen_slv_used =0;
+      print "WARNING: Library do not have Generic slave receiver template\n" if(!$opt_g);
+   }
+}
+#=================================================================
+# Subroutine to select the specific transaction class for a driver
+#=================================================================
+sub select_tr_for_driver { 
+   if($num_of_tr > 1 && !$tr_for_drv_set) {
+      print "\nSelect the transaction type for the selected driver" if(!$opt_g);
+      $temp = 1; 
+      do {
+         print "\n$temp) $tr_name[$temp - 1]" if(!$opt_g); 
+         $temp ++;
+      } while($temp != ($num_of_tr + 1));
+      $t = &get_digit_selection(1,$num_of_tr);
+      &store_selected_options("Transaction Type for Driver",$t);
+      push(@tr_for_driver,$tr_name[$t - 1]);
+      print("\nTransaction $tr_name[$t - 1] is selected for this driver") if(!$opt_g);
+   }
+   else {
+      push(@tr_for_driver,$tr_name[0]);
+   }  
+   #Keeping the default transaction class as the first driver transaction class 
+   &push_file_var_v("TR",$tr_for_driver[0]);   
+   #Keeping the default scenario class as the first driver transaction class's scenario 
+   &push_file_var_v("SCEN",$f_tr_for_driver_names[0]."_basic_scen");
+}
+#=================================================================
+# Subroutine to generate the transaction and driver classes 
+#=================================================================
+sub gen_tr_driver_files {
+   &gen_tr_files();  
+   #Generating the multilple driver files
+   $xact_index = &get_index("XACT");
+   $tx_index   = &get_index("TX");
+   $rpt_array_len{"XACT"} = @drivers;
+   for($j = 0; $j <= $#drivers; $j++) {
+      if($multi_driver_enable == 1) {
+         $current_bfm_name = $mult_driv_names[$j];
+      }  
+      else {
+         $current_bfm_name = $sing_driv_name;
+      } 
+      $v[$xact_index] = $current_bfm_name;
+      chomp ($current_bfm_name);
+      if(@drivers[$j] == 2) {
+         $tr_index = &get_index("TR");
+         $v[$tr_index] = @tr_for_driver[$j];
+         &gen_env_file("d_f_bfm", $current_bfm_name);
+      }
+      if(@drivers[$j] == 3) {
+         &gen_env_file("d_h_hgh", $current_bfm_name);
+      }
+      if(@drivers[$j] == 4) {
+         $tr_index = &get_index("TR");
+         $v[$tr_index] = $f_tr_for_driver_names[$j];
+         $v[$tx_index] = $f_low_tr_names[$j];
+         #Write lower level transaction descriptor template besides driver
+         &gen_env_file("TX", $f_low_tr_names[$j]);
+         &gen_env_file("d_f_hgh", $current_bfm_name);
+         $tx_gen = 1;
+      }
+      if(@drivers[$j] == 5) {
+         $temp_kind = 4;
+         $tr_index = &get_index("TR");
+         $v[$tr_index] = $f_tr_for_driver_names[$j];
+         &gen_env_file("generic_master_driver", $current_bfm_name);
+         &gen_env_file("vmm_master_driver", $current_bfm_name."_base");
+      }
+   }
+   #Write lower level transaction descriptor if monitor is functional 
+   if(($monitor == 3 || $monitor == 4) && $tx_gen != 1) {
+      $v[$tx_index] = $f_low_tr_names[0];
+      &gen_env_file("TX", $f_low_tr_names[0]);
+   }
+   #Keeping the default transaction class as the first driver transaction class 
+   $tr_index = &get_index("TR");
+   $v[$tr_index] = $f_tr_for_driver_names[0];
+   $v[$xact_index] = $mult_driv_names[0] if($multi_driver_enable == 1);
+}
+#=================================================================
+# Subroutine to generate the transaction class files 
+#=================================================================
+sub gen_tr_files {
+   $tr_index = &get_index("TR");
+   for(my $tmp = 0; $tmp <= $tr_count; $tmp++){
+      $v[$tr_index] = $f_tr_names[$tmp];
+	  if($tmp >0)
+	  {
+		  if($bu_name[$tmp] eq "")
+		  {
+			  $bu_name[$tmp] = "vmm_data";
+		  }
+		  $v[$bu_index] = $bu_name[$tmp];
+	  }
+	  else
+	  {
+		  push(@v, $bu_name[0]);
+		  push(@var, "BU");
+   		  $bu_index = &get_index("BU");
+	  }
+	  
+      &gen_env_file("TR", $f_tr_names[$tmp]);
+   }
+}
+#=================================================================
+# Subroutine to generate the scenario files 
+#=================================================================
+sub gen_scen_files {
+   $tr_index = &get_index("TR");
+   $scen_index = &get_index("SCEN");
+   #This logic creates basic scenario files,One for each of the transaction 
+   for($tmp = 0; $tmp <=  $tr_count; $tmp++) {
+      $v[$tr_index] = $tr_name[$tmp];
+      @v[$scen_index] = @scen_name[$tmp];
+      &gen_env_file("scenario", @v[$scen_index]);
+   }
+   #Restore back the value of TR  and scenario
+   $v[$tr_index]   = $f_tr_for_driver_names[0];
+   $v[$scen_index] =  $f_tr_for_driver_names[0]."_basic_scen";
+}
+#=================================================================
+# Subroutine to For Replace code 
+#=================================================================
+sub repeat_code{
+   my($repeat_num) = 1;
+   for ($sym= 0; $sym < @var; $sym++) { 
+      if($_ =~ /\/\/VMMGEN_RPT_ON_($var[$sym])/)  {
+         $rpt_symbl = $1;
+         $rpt_sym_in = &get_index("$rpt_symbl");
+         $rpt_org_val = $v[$rpt_sym_in]; 
+         $repeat_num = $rpt_array_len{$rpt_symbl}; 
+         $_ =~ s/\/\/VMMGEN_RPT_ON_($var[$sym])//;
+         $initial_pattern = $_;
+         &push_file_var_v("RPTNO","");
+         last;
+      }
+   }
+   return($repeat_num);
+}
+#=================================================================
+# Subroutine to replace the symbols inside REPEAT code 
+#=================================================================
+sub replace_rpt_vars {
+   $ind = &get_index("RPTNO");
+   $v[$ind] = $rpt_cnt;
+   #Add other possible symbols which can come as multiple iterations
+   $v[$rpt_sym_in] = $mult_driv_names[$rpt_cnt] if($rpt_symbl =~ "XACT");
+   $v[$rpt_sym_in] = $f_tr_for_driver_names[$rpt_cnt] if($rpt_symbl =~ "TR");
+   #Replace the original pattern again everytime while repeating the loop 
+   $_ = $initial_pattern;
+}
+#=================================================================
+# Subroutine of UI to get the environment name 
+#=================================================================
+sub get_env_name {
+   while (1) {
+      if(!$opt_g) {
+         print "\nEnter the environment name: ";
+         $_ = <STDIN>;   
+         &store_selected_options("Env. Name",$_);
+      }
+      else {
+         $_ = <OPT_FILE>;
+      }
+      chop($_);
+      s/^\s+//;
+      s/\s+$//;
+      if ($_ !~ m/^[a-zA-Z_][a-zA-Z0-9_.]*$/) {
+         print STDERR "ERROR: \"$_\" is not a valid identifier.\n" if(!$opt_g);
+         next;
+      }
+      if ($_ =~ m/^((rvm)|(vmm))/) {
+         print STDERR "ERROR: name cannot start with \"$1\".\n" if(!$opt_g);
+         next;
+      }
+      $vip_name = $_;
+      last;
+   }
+}
+#=================================================================
+# Subroutine to choice subenv 
+#=================================================================
+sub sub_env_choice {
+   while($env_type_1 eq "") {
+      if(!$opt_g){
+         print "\nWould you have sub environments in your environment? enter (y/n): ";
+         $_ = <STDIN>;
+      }
+      else {
+         $_ = <OPT_FILE>;
+      }
+      chomp($_);
+      next if (length($_) > 1);
+      $env_type_1 = "with_se" if($_ =~ m/^[yY]/);
+      $env_type_1 = "with_out_se" if($_ =~ m/^[nN]/);
+   }
+  &store_selected_options("Subenvironments?",$_);
+}
+#=================================================================
+# User Specific Template  
+#=================================================================
+sub user_spe_tmpl_dir {
+   if ($opt_L) {
+      foreach $templates (split(/:/, $opt_L)) {
+         &check_libdir($templates);
+         #ToDo
+         # Need to support more than one library
+         #$templates = $template;
+      }
+   }
+   if ($templates) {
+      print "Standard Templates Location is \"$templates\"...\n" if ($opt_d && !$opt_g);
+      &check_libdir($templates);
+   }
+   # See what languages are available
+   if ($#lang == -1) {
+      print STDERR "Template library does not contain any index files.\n" if(!$opt_g);
+      exit(1);
+   }
+   $langs = join("|", @lang);
+   if (!$opt_l) {
+      if ($#lang == 0) {
+         $opt_l = $lang[0];
+      }
+      else {
+         &usage;
+      }
+   }
+   if (!grep(/^$opt_l$/, @lang)) {
+      print STDERR "Unknown output language \"$opt_l\".\n" if($opt_g);
+      exit(1);
+   }
+}
+####################################################################
+#UI for domain selection in case of RAL env.
+####################################################################
+sub ral_domin_selection {
+   if((!$opt_g) && (!$opt_q)){
+      print "\nChoose one of the following ral bfm:";
+      print "\n1) RAL physical access BFM, single domain";
+      print "\n2) RAL physical access BFM, multiplexed domains";
+    }
+   while($ral_bfm_type eq "") {
+      if((!$opt_g) && (!$opt_q)){
+         print "\nselect [1-2]:";
+         $_ = <STDIN>;
+         &store_selected_options("RAL BFM type",$_);
+      }
+      elsif ($opt_q) {
+         $_ = 1;
+      } 
+      else{
+         $_ = <OPT_FILE>;
+      }
+      chomp($_);
+      next if(length($_) != 1);
+      if(($_ == 1) or ($_ == 2)) {
+         $ral_bfm_type = $_;
+      } 
+      else {
+         next;
+      }
+   }
+}
+####################################################################
+#UI for domain selection in case of RAL env.
+####################################################################
+sub ral_bfm_domain_selection{
+   #UI in case of mutiple domains selection
+   if(!$opt_g){
+      print "\nHow many Domains do you want to create for RAL physical access BFM?";
+         while($dom_count eq "") {
+            print "\nEnter value [default is 2]:";
+            $_ = <STDIN>;
+            chomp($_);
+            $_ = 2 if($_ eq "");
+            print "\nError: value must be an positive integer" if ($_ !~ m/^\d+$/);
+            next if ($_ !~ m/^\d+$/);
+            print "\nError: value must be greater or equal to 2" if ($_ < 2);
+            next if ($_ < 2);
+            $dom_count = $_;
+         }
+         &store_selected_options("No. of RAL domains",$dom_count);
+   }
+   else {
+      $_ = <OPT_FILE>;
+      chomp($_);
+      $dom_count = $_;
+   }
+   #Need to add implementation fo GUI here in else block
+   for($tmp = 1; $tmp <= $dom_count; $tmp++) {
+      while($name eq "") {
+         if(!$opt_g) { 
+            print "Enter the name of Domain $tmp :";
+            $dname = <STDIN>; 
+            &store_selected_options("Name of RAL domain $tmp",$dname);
+         }
+         else { 
+            $dname = <OPT_FILE>;
+         }
+         chomp($dname);
+         if ($dname !~ m/^[a-zA-Z_][a-zA-Z0-9_.]*$/) {
+            print STDERR "ERROR: \"$dname\" is not a valid identifier.\n" if(!$opt_g);
+            next;
+         }
+         if ($dname =~ m/^((rvm)|(vmm))/) {
+            print STDERR "ERROR: name cannot start with \"$1\".\n" if(!$opt_g);
+            next;
+         }
+         push(@dom_name, $dname);
+         $name = $dname;
+         &push_file_var_v("DN1",$dname) if($tmp == 1);
+         &push_file_var_v("DN2",$dname) if($tmp == 2);
+      }
+      $name = "";
+   }
+}
+
+
+#This subroutine stores the selected option in the LOG file
+sub store_selected_options{
+my($option,$value) = @_;
+
+chomp($value);
+print OPTLOG "$option : $value \n";
+}
+
+END {
+close(OPTLOG);
+#For complete env. move the vmmgen_options_log into proj
+if($gen_opt == 1) {
+  system("mv vmmgen_options_log.txt $proj_dir");
+ }
+}

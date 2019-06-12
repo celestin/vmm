@@ -1,0 +1,31 @@
+
+
+Keywords:
+		Search keywords: vmm_object create_by vmm_1.2
+
+Technical content:
+ 
+		Title: 		 vmm_object replacement 
+ 
+		Objective:    replacing the vmm_object using create_by_new and copy
+
+		Description:   This test shows the usageof  replacing the vmm_object blueprint class   using create_by_copy and create_by_new
+
+		Additional setup: None	
+ 
+ To run the example:
+      Using Makefile:
+       	clean           -- To clean up the log files and executable of previous run
+       	comp            -- To compile the design
+        run             -- To run the design
+        all             -- It does all the above steps.
+     Using shell scripts:
+        clean.csh       -- To clean up the log files and executable of previous run
+        comp.csh        -- To compile the design
+        run.csh         -- To run the design  
+ 
+ 
+Location Information:
+		PATH: 			$VMM_HOME/examples/testbench/sv/vmm/std_lib/factory_pattern/basic_vmm_object
+		DIAGRAMS: 		None
+		Cross Reference:	$VMM_HOME/doc/vmm_user_guide.pdf

@@ -1,0 +1,14 @@
+Verification Methodology Manual
+version 1.2.2
+
+(C) Copyright 2004-2011 Synopsys, Inc.
+All Rights Reserved Worldwide
+
+
+The SystemVerilog code in this distribution was developped using
+VCS2010.06 and no special action need to be taken if you are using
+this release of VCS
+
+Using VMM with VCS is simply done with the following command line:
+  % vcs -sverilog +incdir=$VMM_HOME/sv ...
+
