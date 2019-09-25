@@ -1,0 +1,44 @@
+VMM 1.2 SPI Verification Environment Example
+---------------------------------------------
+This release contains all the files that you need to create a simple VMM 1.2
+verification environment around the OpenCores' SPI design.  
+
+You will need the following in order to compile this SystemVerilog code:
+
+ * VMM 1.2 - download from www.vmmcentral.org
+ * OpenCores SPI design - http://www.opencores.org/websvn,listing,spi
+ * VCS 2009.x - all testing was done using VCS D-2009.12
+
+This release contains the following files:
+
+Makefile		spi_wrapper.sv		wb_spi_tb.sv
+README			wb_driver.sv		wb_spi_top.sv
+dut_if_wrapper.sv	wb_monitor.sv		wb_spi_trans.sv
+dut_intf.sv		wb_spi_defines.svh	wb_spi_trans.svh
+mon_sb_trans.sv		wb_spi_env.sv		wb_subenv.sv
+scenarios.sv		wb_spi_pkg.sv		wb_test1.sv
+spi_monitor.sv		wb_spi_scoreboard.sv
+
+Once you have downloaded and installed all requirements, then edit the
+Makefile and change the variables found at the top to point to the VMM 1.2
+and SPI RTL directories.  
+
+To build and simulate the environment, use one of the following make targets:
+
+%  make build 			# Builds the VCS model but does not simulate
+
+%  make sim			# Builds and simulates the environment
+
+%  make debug			# Builds, simulates, and brings up DVE
+
+That's all you need to do to get the environment up and running.  You can
+report problems or send questions to info@doulos.com.
+
+Thanks for downloading this example, and we hope you find it both useful
+and informative!
+
+-Doulos
+www.doulos.com
+
+Check out our SystemVerilog KnowHow section at:
+http://www.doulos.com/knowhow/sysverilog/
