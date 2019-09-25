@@ -1,0 +1,9 @@
+VMM
+Test 1a PASSED:   All files are installed 
+Test 1b PASSED:   Files are consistent
+Test 2a PASSED:   Found vcs executable at /global/apps3/vcs_2009.12-2/bin/vcs 
+Test 2b PASSED:   Found dve executable at /global/apps3/vcs_2009.12-2/bin/dve 
+Test 3  PASSED:   vcs succeeded
+Test 4  PASSED:   vcs ntb succeeded
+Test 5  Skipped by user:   GUI (dve) run skipped
+

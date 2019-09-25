@@ -1,0 +1,18 @@
+class test_scenario extends Packet_scenario;
+   int unsigned WALKING_ZERO;
+   int unsigned WALKING_ONE;
+
+   constraint test {
+      // Lab 4 - add constraint for WALKING_ZERO and WALKING_ONE
+      // ToDo
+
+
+   }
+
+   function new();
+      // Lab 4 - add define_scenario for WALKING_ZERO and WALKING_ONE
+      // ToDo
+
+
+   endfunction
+endclass

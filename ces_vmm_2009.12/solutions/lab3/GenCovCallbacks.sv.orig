@@ -1,0 +1,19 @@
+class GenCovCallbacks extends Packet_atomic_gen_callbacks;
+
+// Lab 3 - Create coverage properties for sa and da
+// ToDo
+
+
+// Lab 3 - Create covergroup for sa and da
+// ToDo
+
+
+// Lab 3 - Define constructor to construct coverage object
+// ToDo
+
+
+// Lab 3 - Define callback method post_inst_gen() to cover values of sa and da
+// ToDo
+
+
+endclass

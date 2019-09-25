@@ -1,0 +1,17 @@
+typedef class scoreboard;
+
+class GenSbCallbacks extends Packet_atomic_gen_callbacks;
+
+// Lab 3 - Create scoreboard instance
+// ToDo
+
+
+// Lab 3 - Define constructor to accept passing in scoreboard handle
+// ToDo
+
+
+// Lab 3 - Define callback method post_inst_gen() to deposit Packet object into scoreboard
+// ToDo
+
+
+endclass

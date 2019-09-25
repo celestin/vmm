@@ -1,0 +1,27 @@
+// Lab 4 - Change Packet_atomic_gen_callbacks to Packet_scenario_gen_callbacks
+// ToDo
+class GenCovCallbacks extends Packet_atomic_gen_callbacks;
+
+
+   bit[3:0] sa, da;
+
+   covergroup gen_port_cov;
+      coverpoint sa;
+      coverpoint da;
+      cross sa, da;
+      type_option.weight = 0;
+   endgroup
+
+   function new();
+      this.gen_port_cov = new();
+   endfunction
+
+   // Lab 4 - Change post_inst_gen method to post_scenario_gen
+   // ToDo
+   task post_inst_gen(Packet_atomic_gen gen, Packet obj, ref bit drop);
+      this.sa = obj.sa;
+      this.da = obj.da;
+      this.gen_port_cov.sample();
+   endtask
+
+endclass

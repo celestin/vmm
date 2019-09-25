@@ -1,0 +1,19 @@
+typedef class scoreboard;
+
+// Lab 4 - Change Packet_atomic_gen_callbacks to Packet_scenario_gen_callbacks
+// ToDo
+class GenSbCallbacks extends Packet_atomic_gen_callbacks;
+
+
+   scoreboard sb;
+   function new(scoreboard sb);
+      this.sb = sb;
+   endfunction
+
+   // Lab 4 - Change post_inst_gen to post_scenario_gen
+   // ToDo
+   task post_inst_gen(Packet_atomic_gen gen, Packet obj, ref bit drop);
+      this.sb.deposit(obj);
+   endtask
+
+endclass
