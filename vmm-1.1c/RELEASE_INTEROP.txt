@@ -1,0 +1,524 @@
+================================================================================
+
+Title: Release Notes - VMM 1.1c
+
+================================================================================
+
+--------------------------------------------------------------------------------
+
+Topic: Changes in VMM 1.1c
+
+--------------------------------------------------------------------------------
+
+Change `vmm_callback implementation to work around temporary IUS limitation.
+
+    - vmm-1.1/sv/std_lib/vmm.sv
+
+Remove ~disable_ovm~ variable from vmm_env class. This was moved to the
+~avt_vmm_ovm_env~ class in the OVM / VMM interoperability library.
+
+    - vmm-1.1/sv/std_lib/vmm.sv
+
+--------------------------------------------------------------------------------
+
+Topic: SystemVerilog compliance issues
+
+--------------------------------------------------------------------------------
+
+This section describes the changes needed to bring VMM 1.1 in compliance with
+the SystemVerilog standard.
+
+
+Overrides and externs must match prototype:
+
+Virtual and extern function argument type, identifiers must match their prototype,
+and existence of a default value must be present in the virtual override or
+extern definition. (Fixed in Questa 6.4b and after.)
+
+    - vmm-1.1/sv/examples/perf/tl_bus/bus_tr.sv
+    - vmm-1.1/sv/examples/perf/tl_bus/tb_env.sv
+    - vmm-1.1/sv/perf/vmm_perf_analyzer.sv
+    - vmm-1.1/sv/perf/vmm_perf_tenure.sv
+    - vmm-1.1/sv/perf/vmm_sql_db_ascii.sv
+    - vmm-1.1/sv/perf/vmm_sql_db.sv
+    - vmm-1.1/sv/RAL/vmm_ral_block_or_sys.sv
+    - vmm-1.1/sv/RAL/vmm_ral_block.sv
+    - vmm-1.1/sv/RAL/vmm_ral_mem.sv
+    - vmm-1.1/sv/RAL/vmm_ral_reg.sv
+    - vmm-1.1/sv/std_lib/vmm_data.sv
+    - vmm-1.1/sv/std_lib/vmm_log.sv
+    - vmm-1.1/sv/std_lib/vmm_ms_scenario_gen.sv
+    - vmm-1.1/sv/std_lib/vmm_opts.sv
+    - vmm-1.1/sv/std_lib/vmm_scenario.sv
+    - vmm-1.1/sv/std_lib/vmm_test.sv
+
+
+Cross-module references in global scope:
+	
+Hierarchical references from within class declarations, defined in $unit 
+scope, refer to a module *implicitly* instantiated at top-level scope. 
+Statements in the top-level compilation unit are not allowed to have
+hierarchical references. In most cases, the remedy was to move the
+`include of the testbench (class) related code into the program block.
+Doing this allows the example to compile and run, but the practice
+prevents reuse of the envs in anything but the particular top-level DUT
+that it references.
+
+    - vmm-1.1/sv/examples/HAL/fifo/tb_env.sv
+    - vmm-1.1/sv/examples/HAL/fifo/test.sv
+    - vmm-1.1/sv/examples/std_lib/ethernet/test_mac.sv
+    - vmm-1.1/sv/examples/std_lib/ethernet/test_mii.sv
+    - vmm-1.1/sv/examples/std_lib/ethernet/mii_env.sv
+    - vmm-1.1/sv/examples/std_lib/ethernet/mii_if.sv (removed include of vmm.sv)
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tb_env.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_bad_dst.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_collisions.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_directed.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_rx_err.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_sequences.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_trivial_rx.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_trivial_tx.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_turn_on.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_unconstrained.sv
+
+
+Return value in non-void functions:
+
+The following files contained non-void function definitions that did not assign a
+return value. 
+
+    - vmm-1.1/sv/examples/sb/apb_bus/tb_env.sv
+    - vmm-1.1/sv/HAL/vmm_hw_port.sv
+    - vmm-1.1/sv/RAL/vmm_ral_block_or_sys.sv
+    - vmm-1.1/sv/std_lib/vmm_env.sv
+    - vmm-1.1/sv/std_lib/vmm_subenv.sv
+    - vmm-1.1/sv/std_lib/vmm_xactor.sv
+
+
+Assigning bitvector to string requires cast:
+
+Added string'() cast to go from bitvector to string datatype
+
+    - vmm-1.1/sv/HAL/vmm_hw_rtl.sv
+    - vmm-1.1/sv/HAL/vmm_hw_arch_null.sv
+    - vmm-1.1/sv/vmm_hw_rtl.sv
+    - vmm-1.1/sv/std_lib/vmm_data_macros.sv
+
+
+Fork-join_none in functions:
+
+Functions can only fork-join_none if calling process originates from initial
+block. vmm_xactor forks processes in their constructors (new function), this
+means that vmm_xactor types can not be initialized (new'd) at the site of
+its declaration.
+
+    - vmm-1.1/sv/examples/std_lib/mss_simple/msgen_example.sv
+
+
+Use void'() when ignoring return value in non-void functions:
+
+Added void'(...) to non-void function to avoid warning
+
+    - vmm-1.1/sv/examples/perf/tl_bus/tb_env.sv
+    - vmm-1.1/sv/examples/perf/tl_bus/tb_env.sv
+    - vmm-1.1/sv/examples/std_lib/ethernet/test_frame.sv
+    - vmm-1.1/sv/examples/std_lib/mss_simple/msgen_example.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_collisions.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_directed.sv
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_rx_err.sv
+    - vmm-1.1/sv/examples/std_lib/record_replay/tb_env.sv
+    - vmm-1.1/sv/examples/std_lib/vmm_test/verif/alu_env.sv
+    - vmm-1.1/sv/examples/subenv/oc_ethernet/ethernet/pls.sv
+    - vmm-1.1/sv/perf/vmm_perf_analyzer.sv
+    - vmm-1.1/sv/perf/vmm_sql_db_sqlite.sv
+    - vmm-1.1/sv/perf/vmm_sql_db.sv
+    - vmm-1.1/sv/RAL/vmm_ral_reg.sv
+    - vmm-1.1/sv/sb/vmm_sb_ds_iter.sv
+    - vmm-1.1/sv/std_lib/vmm_log.sv
+
+
+Import "DPI-C", not import "DPI":
+
+Changed import "DPI" to import "DPI-C" to be compliant with SV standard.
+
+    - vmm-1.1/sv/perf/vmm_sql_db_sqlite.sv
+    - vmm-1.1/sv/perf/vmm_sql.sv
+
+
+Undefined extern methods:
+
+Can't have undefined extern methods. Made them pure or empty to workaround.
+
+    - vmm-1.1/sv/perf/vmm_sql_db.sv
+    - vmm-1.1/sv/RAL/vmm_ral_mem.svh
+
+
+Covergroup arguments:
+
+Must pass the 'cfg' object as an argument in the covergroup's constructor.
+
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tb_env.sv
+
+
+Illegal use of keyword 'table':
+
+    - vmm-1.1/sv/perf/vmm_sql_db.sv
+
+
+Non-compliant use of `` inside string literal:
+
+Use of `" for string literal containing ` (e.g. `h%0h).
+Some uses of `` that seem to expect to produce a `. Replaced with \"
+
+    - vmm-1.1/sv/std_lib/vmm_data_macros.sv
+
+
+Non-compliant virtual method override in macro:
+
+The `vmm_test_begin macro defines an override to vmm_test::run that does
+not match the prototype. Changed so it matched. 
+
+    - vmm-1.1/sv/std_lib/vmm.sv
+
+
+Illegal syntax:
+
+The statement, return (get_ms_scenario_gen = i) is illegal SystemVerilog.
+Changed to simply, return i.
+
+    - vmm-1.1/sv/std_lib/vmm_ms_scenario_gen.sv
+    - vmm-1.1/sv/std_lib/vmm_scenario_gen.sv
+
+
+Functions in solve-before constraints:
+
+Removed illegal use of solve before and method call. Only random variables
+are allowed.
+
+    - vmm-1.1/sv/std_lib/vmm_scenario_gen.sv
+
+
+
+--------------------------------------------------------------------------------
+
+Topic: Changes to increase VMM robustness
+
+--------------------------------------------------------------------------------
+
+Some examples had robustness issues, such as race conditions in static
+initializers and end-of-test, where the last transaction was missed due to
+a premature $finish. The SystemVerilog standard specifies initialization order
+and process resumption order as undefined. The VMM and certain examples rely on
+VCS-specific implementation.  Thus, an apply method in a user scenario may
+return and cause end-of-test after the transaction has been removed from the
+channel but before the scoreboard has a chance to receive and process it.
+
+Race conditions in initialization of vmm_opts in vmm_test:
+
+Removed allocation of vmm_opts in static initializer. Unnecessary, and causes
+race condition between it an other static initializers, such as when
+registering vmm_test instances.  As it was, there is no guarantee that
+vmm_test's _vmm_opts member is initialized before it is dereferenced.
+
+    - vmm-1.1/sv/std_lib/vmm_test.sv
+
+
+Race conditions in initialization of _vmm_xactor in vmm_xactor_iter:
+
+Removed allocation and use of _vmm_xactor in vmm_xactor_iter. Adjust 
+conditionals on iterator idx variable to account for lack of "dummy"
+_vmm_xactor in registry. Access static vmm_xactor registry in vmm_xactor
+via scope operator. 
+
+    - vmm-1.1/sv/std_lib/vmm_xactor.sv
+
+
+Race condition between scenario registration and init of next_scenario_kind:
+
+Removed static initialization of vmm_scenario::next_scenario_kind to avoid
+race condition between it and calling of define_scenario in other static
+initializers. Removal is benign because ints are by default initialized
+to 0.
+
+    - vmm-1.1/sv/std_lib/vmm.sv
+
+
+vmm_opts methods to be non-static:
+
+Hard-coded `define NO_STATIC_METHODS to make vmm_opts methods non-static.
+Caused race conditions when static.
+
+
+Race conditions in static initializers:
+
+Replaced static allocation of variable with procedural allocation to
+avoid race condition with static initializers that depend on initialization
+order, which is stated as undefined in the LRM.
+
+    - vmm-1.1/sv/examples/std_lib/vmm_test/verif/alu_test.sv (registry)
+    - vmm-1.1/sv/examples/subenv/oc_ethernet/blk_trivial_test.sv (blk_env)
+    - vmm-1.1/sv/examples/subenv/oc_ethernet/sys_trivial_test.sv
+
+
+#0 to avoid race conditions:
+
+Added #0 in stop task to avoid race condition with "tenure" process, which
+needs a delta to resume and process the transaction.
+
+    - vmm-1.1/sv/examples/perf/tl_bus/tb_env.sv
+
+
+Testbench robustness against random constraints' solution space:
+
+The std_lib/oc_ethernet example does not appear to be robust
+against all randomizable configurations. This is likely due to differences
+in our respective constraint solvers; Questa randomizes to a configuration
+not reached by VCS.
+
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tests/test_turn_on.sv
+
+
+Driver missing call to chan.complete:
+
+    - vmm-1.1/sv/examples/std_lib/record_replay/driver.sv
+
+
+Malformed regular expression string:
+
+An incorrect regular expression was causing segfaults in the DPI-C code.
+The regular expression was fixed, and error checking was added to the C code.
+
+    - vmm-1.1/sv/perf/vmm_sql_db.sv
+
+
+Uncomment `ifdef VCS:
+
+    - vmm-1.1/sv/std_lib/vmm_log.sv
+
+
+Error checking in vmm_str_dpi.c:
+
+Added proper error-checking in the DPI code to avoid segfaults. See 
+also "Malformed Regexp string.
+
+    - vmm-1.1/sv/std_lib/vmm_str_dpi.c
+
+
+DPI imports inside package:
+
+Moved DPI imports to inside (optional) package
+
+    - vmm-1.1/sv/std_lib/vmm.sv
+
+
+Selection of sqltxt or sqlite:
+
+Added `ifdef to select whether to `include  sqlite or ascii version
+
+    - vmm-1.1/sv/perf/vmm_sql.sv
+
+
+Add RAL-in-package option:
+
+Added option to import RAL as a package.
+
+    - vmm-1.1/sv/vmm_ral.sv
+
+
+Unnecessary allocation of generators in PLAYBACK mode (optimization only):
+
+    - vmm-1.1/sv/examples/std_lib/record_replay/tb_env.sv
+
+
+
+--------------------------------------------------------------------------------
+
+Topic: Changes to work around differences in simulator implementation
+
+--------------------------------------------------------------------------------
+
+Where the SystemVerilog standard is vague, Questa and VCS can differ in their
+implementations. Yet, for portability across simulators, it is important that
+meaningful differences in behavior be avoided.
+
+
+Expansion of embedded macros:
+
+Modified embedded macro invocations to workaround differences in macro
+expansion between VCS and Questa. String literal arguments between `" quotes
+in inner macro invocations can not contain commas in Questa. This is
+currently in debate in the SV standards committee.
+
+|   `define foo(_name) \
+|      `vmm_warning(this.log, `" vmm_data  _name object does not exist, no action`"); \
+
+The comma in the above macro was interpreted as an argument delimeter in
+the embedded `vmm_warning macro invocation.
+
+    - vmm-1.1/sv/std_lib/vmm_data_macros.sv
+
+
+Argument copying in system function calls ($sformat):
+
+In $sformat, VCS apparently copies arguments to temporary variables left to right.
+If a later argument expression modifies a variable that is part of earlier
+argument expressions, the change is not reflected in the 1st argument, as it
+has already been internally copied to a temporary. To work on Questa, the
+code had to be changed to make explicit the copy of the 1st argument to a
+temporary.
+
+For example, this
+
+  | $sformat(pf, `"%s   _name[%0d]: `", this.__vmm_prefix, i); \
+  | $sformat(this.__vmm_image, `"%s\n%s`", this.__vmm_image, this._name[i].psdisplay(pf)); \
+
+was changed to this
+
+  | string _image = this.__vmm_image; \
+  | $sformat(pf, `"%s   _name[%0d]: `", _prefix, i); \
+  | $sformat(this.__vmm_image, "%s\n%s", _image, this._name[i].psdisplay(pf)); \
+
+    - vmm-1.1/sv/std_lib/vmm_data_macros.sv
+
+Note the temporary variable used in 1st arg to $sformat.
+
+
+queue.delete() not legal until IEEE 1800-2009:
+
+Illegal use of delete() on queue.
+
+    - vmm-1.1/sv/examples/std_lib/oc_ethernet/tb_env.sv
+    - vmm-1.1/sv/perf/vmm_perf_analyzer.sv
+
+
+--------------------------------------------------------------------------------
+
+Topic: Changes to work around Questa limitations
+
+--------------------------------------------------------------------------------
+
+The following changes were made to either enable running VMM 1.1 on earlier
+versions of Questa or to work around temporary limitations in Questa.
+
+
+Explicit bit widths on constraints:
+
+Added explicit bit-widths to constraints on addr part-selects.
+Needed only for Questa 6.4a compatibility.
+
+    - vmm-1.1/sv/examples/std_lib/wishbone/cycle.sv
+
+
+Explicit bit widths on non-blocking assignments:
+
+Added explicit bit-widths on non-blocking assignments to sigs.mck.*
+signals. Needed only for Questa 6.4a compatibility.
+
+    - vmm-1.1/sv/examples/std_lib/wishbone/master.sv
+
+
+Calling built-in method of enum in array:
+
+Workaround to accessing array of enum: this._name[j].name()
+
+    - vmm-1.1/sv/std_lib/vmm_data_macros.sv
+
+
+Invocation of empty macro definitions:
+
+Added /**/ in otherwise empty macro definitions to work around 6.4a bug
+(fixed in later versions).
+
+    - vmm-1.1/sv/std_lib/vmm.sv
+
+
+--------------------------------------------------------------------------------
+
+Topic: Changes to work around IUS limitations
+
+--------------------------------------------------------------------------------
+
+The following changes were made to either enable running VMM 1.1 on earlier
+versions of IUS or to work around temporary limitations in IUS.
+
+
+- foreach on queues and dynamic arrays were changed
+
+  | foreach(ref.id[index])
+  |
+  |  to
+  |
+  | for(int index=0; index<ref.id.size(); ++index) 
+
+The workarounds are enabled by `ifdef INCA.
+
+
+- foreach on associative arrays were changed
+
+  | foreach(ref.id[index])
+  |
+  |  to
+  |
+  | index_type index;
+  | if(ref.id.first(index))
+  | do begin
+  |   ...
+  | end while(ref.id.next(index));
+
+- IUS doesn't support array/queue literal assignments.
+
+- IUS doesn't support replicate operator for strings {4{" "}}
+
+- IUS does not support queue of string elements in $sformat
+
+- Recode block which contains a static disable and a return (IUS doesn't support 
+  return in a disabled block). Recode to remove the return or the disable.
+
+- In some cases, IUS thinks the result of a {} is a bitvector instead of a string.
+  You need to use $psprintf or similar alternative.
+
+- IUS doesn't support string type to $test$plusargs, need to change to a vector.
+
+- IUS doesn't support access into a qda in a $sformat call.
+
+- IUS problem with same sequence name in different clocking blocks of the same interface.
+
+- IUS does not support get_inst_coverarge()
+
+- IUS doesn't support localparam in classes
+
+- IUS doesn't support type parameters that are struct types. Need to change to
+  a class object.
+
+- IUS issue with default args to interface tasks.
+
+- IUS cannot static cast string to bit vector
+
+- IUS cannot directly access dynamic object methods inside of an interface.
+  You need to go through interface task/functions.
+
+- IUS doesn't support find_index
+
+- IUS doesn't support array assignment array_a = array_b
+
+- IUS doesn't support break/continue in a disabled block 
+
+- IUS doesn't support initializers for dynamic types within initial blocks
+    | env e = new();
+
+- IUS currently requires explicit parameter assignments when instantiating a
+  specialization.
+    | class foo #(type T1=int,T2=T1); endclass
+    | ...
+    | foo #(int,int) my_foo;
+
+- IUS currently does not allow hierarchical access to built-in methods (e.g. queues)
+  in parameterized types. For example:
+  | class foo#(type T=int);
+  |   T queue[$];
+  | endclass
+  | foo#(int) myclass myobj = new;
+  | initial $display("Size: %0d", myobj.queue.size());
+
+
+<END RELEASE NOTES>

@@ -1,0 +1,73 @@
+Verification Methodology Manual
+version 1.1
+
+
+                                RELEASE NOTES
+
+
+(C) Copyright 2004-2009 Synopsys, Inc.
+All Rights Reserved Worldwide
+
+
+The following release notes describe the important differences between
+this VMM release and the 1.0.1 Open Source release of the VMM.
+
+
+** Standard Library
+
+- Fixed non-compliant SystemVerilog language usage
+- Added support for `__FILE__ and `__LINE__ to vmm_log
+  (define `VMM_LOG_FORMAT_FILE_LINE to enable -- makes
+  vmm_log_format::format_msg() and vmm_log_format::continue_msg() not
+  backward compliant).
+- Added optional common base class (vmm_object) customization
+- Added hierarchical vmm_log instance renaming
+- Introduced vmm_scenario base class
+- Added multi-stream scenario generator (vmm_ms_scenario_gen)
+- Added by-name scenario registry to single-stream scenario generator
+- Added transactor iterator (vmm_xactor_iter)
+- Added ability to specified channel relationships
+- Added vmm_log::catch()
+- Added command-line option manager (vmm_opts)
+- Added base class for testcases (vmm_test)
+- Added short-hand macros for vmm_env, vmm_subenv and vmm_xactor
+
+
+** Register Abstraction Layer
+
+- Fixed non-compliant SystemVerilog language usage
+- Added field value and address map coverage models.
+- Added hierarchical coverage directives to RALF
+
+
+** Scoreboard
+
+- Added +vmm_sb_trace and +vmm_sb_debug command-line options
+
+
+** Performance Analyzer
+
+- First open source release
+
+
+** Hardware Abstraction Layer
+
+- Fixed non-compliant SystemVerilog language usage
+
+  Generic parametrized interfaces were removed in the -2005 version of
+  the standard. Unfortunately, this means that HAL 2.0 is not backward
+  compatible with HAL 1.0 and the following changes must be made:
+
+     - Append ".vitf" to all virtual interface references. For
+       example, change:
+
+          ip = arch.create_in_port(tb_top.bfm_write.msg1, ""); 
+
+       to:
+
+          ip = arch.create_in_port(tb_top.bfm_write.msg1.vitf, "");
+
+       This applies to all calls to vmm_hw_arch::create_in_port(),
+       vmm_hw_arch::create_out_port() and vmm_hw_arch::clk_control().
+
+     - Use VMM_HW_DATA_WIDTH instead of VMM_HW_MAX_MSG_WIDTH

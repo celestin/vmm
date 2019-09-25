@@ -1,0 +1,4 @@
+rm -f ../../../../sv/examples/vmm_str_dpi.so
+rm -rf ../../shared/examples/oc_ethernet/rtl/work_rtl
+make: Nothing to be done for `run_all'.
+make: *** No rule to make target `2'.  Stop.
