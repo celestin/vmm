@@ -1,0 +1,1 @@
+vcs "+define+VMM_12" "+incdir+/remote/vtghome11/fdelgust/vmm-1.2.0//sv" "-sverilog" "-debug_all" "test.sv" "-l" "comp.log"

@@ -1,0 +1,18 @@
+Command: vcs -sverilog -ntb_opts rvm env.sv -l comp.log
+                         Chronologic VCS (TM)
+        Version D-2009.12-B (ENG) -- Fri Jul 17 09:56:15 2009
+               Copyright (c) 1991-2008 by Synopsys Inc.
+                         ALL RIGHTS RESERVED
+
+This program is proprietary and confidential information of Synopsys Inc.
+and may be used and disclosed only as authorized in a license agreement
+controlling such use and disclosure.
+
+Parsing design file '/remote/vtghome11/fdelgust/VMM_TD-20/etc/rvm/vmm.sv'
+Parsing design file 'env.sv'
+Parsing included file '/remote/vtghome11/fdelgust/VMM_TD-20/etc/rvm/vmm.sv'.
+Back to file 'env.sv'.
+Top Level Modules:
+       ugExample2
+No TimeScale specified
+Starting vcs inline pass...

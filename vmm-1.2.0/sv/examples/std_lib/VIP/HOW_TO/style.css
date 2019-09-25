@@ -1,0 +1,42 @@
+BODY {background-color: white;
+      font-size: 12pt;
+      font-weight: normal;
+      font-family: sans-serif;
+      color: black}
+
+TABLE TD {background-color: white;
+          font-size: 12pt;
+          font-weight: normal;
+          font-family: sans-serif;
+          color: black}
+
+A:link {color: blue; text-decoration: none}
+A:visited {color: blue; text-decoration: none}
+A:hover   {color: maroon}
+A:active   {color: green}
+
+H1 {margin-left: 0em; font-size: 18pt; font-family: sans-serif; font-weight: bold; color: Navy}
+H2 {margin-left: 1em; font-size: 16pt; font-family: sans-serif; font-weight: bold; color: Navy}
+H3 {margin-left: 2em; font-size: 14pt; font-family: sans-serif; font-weight: bold}
+H4 {margin-left: 3em; font-size: 12pt; font-family: sans-serif; font-weight: bold}
+
+UL {list-style: disc}
+P UL {margin-left: 4em}
+
+OL {margin-left: 8em}
+OL P {margin-left: 0em}
+
+P {margin-left: 4em}
+
+DL {margin-left: 4em}
+B {font-weight: bold}
+DL P {margin-left: 0em;
+      font-weight: normal}
+DL DT {margin-left: 0em; font-size: 14pt; font-family: sans-serif; font-weight: bold}
+DL PRE {margin-left: 0em;
+        font-family: monospace;
+        font-weight: normal}
+
+PRE {margin-left: 3em;
+     font-size: 12pt;
+     font-family: monospace}

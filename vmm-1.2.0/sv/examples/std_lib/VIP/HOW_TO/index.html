@@ -1,0 +1,754 @@
+<html>
+<head>
+  <title>How to Write VMM-Compliant Verification IP</title>
+  <link rel=StyleSheet href="style.css" type="text/css" media=screen>
+</head>
+
+<body background="spiral2.gif">
+
+<h1>How to Write VMM-Compliant Verification IP</h1>
+
+<p>
+This tutorial describes how the ethernet verification IP found in the
+examples of the VMM book has been written. It shows the various options
+that were explored and why a particular approach was taken.
+
+<h2>Step 1: Specification</h2>
+
+<p>
+Always start from a specification document. The ethernet VIP was
+written using the 2000 edition of the document titled "<i>Part 3:
+Carrier sense multiple access with collision detection (CSMA/CD)
+access method and physical layer specifications</i>" which is part of
+the IEEE 802.3 standard.
+
+<h2>Step 2: Layers</h2>
+
+<p>
+Section 2.1 shows the protocol layers and how they map to the OSI
+protocol layer stack: physical (PHY), media access control (MAC),
+logical link control (LLC) and higher layers. Must decide on mapping
+to transactor layers. Should interface between layers be exposed or
+two layers merged into a single transactor?
+
+<p>
+Exposing interface allows upstream and downstream transactors to be
+replaced. Merged layers make it simpler to use: only on transactor to
+instantiate. Could still expose the interface and provide
+"meta-transactors" creating usual or common combinations to ease
+instantiation.
+
+<p>
+Exposing interface requires data model for information exchanged over
+that interface.
+
+<p>
+Could merge MAC and PHY layers, but would require duplicating MAC
+functionality for all possible PHY protocols (MII, RMII, SMII, SSMII,
+GMII, XGMII, XAUI, etc...). Better to separate MAC from PHY and reuse
+MAC functionality across all PHYs.
+
+<p>
+Architecture:
+<pre>
+   <->  MAC  <->  PHY  <-> DUT
+       layer     layer
+</pre>
+
+<p>
+<h3>Inter-Layer Interfaces</h3>
+
+<p>
+For the PHY layer transactors, the signal-level interface (to the DUT)
+will be dictated by the actula PHY-layer protocol.
+
+<p>
+Section 6 defines a Physical Layer Signaling (PLS) service between
+MAC and PHY layers. It is specified as a set of procedural bit-level
+interfaces. The PLS provides the following services:
+
+<p>
+<ol>
+   <li>Data transmission
+   <li>Data reception
+   <li>Carrier indication
+   <li>Error (collision) indication
+   <li>Data valid indication
+</ol>
+
+<p>
+Section 2 defines a MAC service between the MAC and LLC layers. It is
+specified as a procedural interface with complex data types. The following
+services are provided:
+<p>
+<ol>
+   <li>Send data
+   <li>Receive data
+   <li>Send control
+   <li>Receive control
+</ol>
+
+<p>
+The MAC service interface, being entirely data-flow driven, can be
+implemented by transfering objects that contain the specified
+destination_address, source_address and m_sdu. Channels can be used to
+exchange these objects. Because the protocol can be full duplex, two
+channels (one for transmission and one for reception) must be
+used. The control data, as described in section 31.4.1, has a
+structure identical to the normal data structure shown in section
+3. The same data model (with some variants) can be reused to transport
+the control information. A separate pair of channels could be used to
+exchange those control frames. But because the protocol supports a
+single class of service, and to avoid creating an artificial
+arbitration or priority scheme between the two streams, the same
+channel pair will be used. Normal and control information shall be
+transmitted in the same order and supplied in the same order as
+received.
+<p>
+<pre>
+   class eth_frame extends vmm_data;
+      typedef enum {UNTAGGED, TAGGED, CONTROL} frame_formats_e;
+      rand frame_formats_e format;
+      ...
+   endclass: eth_frame
+</pre>
+<p>
+<center>
+   <pre>
+     Higher  --> Channel of eth_frame (tx) -->  MAC 
+     Layers  <-- Channel of eth_frame (rx) <-- Layer
+   </pre>
+   <p>
+   Interface between MAC and higher layers
+</center>
+
+<p>
+Note that MAC service interface does not provide any positive
+acknowledgement of successful transmission. It is left to the higher
+protocol layers to implement reliable transmission. Still, it would be
+useful for the verification environment to know of the transmission
+was successful or not as soon as possible, to avoid having to design
+some confirmation protocol and avoid having to wait for timers to
+expire. Transmission status and statistics could be attached to the
+pre-defined ENDED indication.
+<p>
+<pre>
+   class eth_frame_tx_status extends vmm_data;
+      bit          successful;
+      int unsigned n_attempts;
+      time         latency;
+   endclass: eth_frame_tx_status
+</pre>
+
+<p>
+The PLS service interface is a combination of data-driven (transmit
+and receive) and timing-sensitive (carrier detect, collision). The
+data-driven portion can be implemented using channels and the
+timing-sensitive portion can be implementat based on the vmm_notify
+notification service.
+<p>
+<pre>
+   class eth_pls_indications extends vmm_notify;
+      typedef enum {CARRIER, COLLISION} indications_e;
+
+      function new(rvm_log log);
+         super.new(log);
+      
+         void = super.configure(CARRIER, ON_OFF);
+         void = super.configure(COLLISION, ON_OFF);
+      endfunction: new
+   endclass: eth_pls_indications
+</pre>
+
+<p>
+The data-driven interface need not be at the bit level, as specified
+in section 6, as it would be rather innefficient. Furthermore, the
+channel does not readily have a mechanism for separating bursts of
+bits or bytes: unless they are separated by empty-channel conditions,
+consecutive bursts of channel data are undistinguishable from a
+single, longer burst. Both problems can be addressed by simply
+providing the data for the entire frame to be transmitted or that has
+been received in each individual transfers.  This allows the same data
+model for the MAC service interface to be reused for the PLS service
+interface.
+<p>
+<center>
+   <pre>
+      MAC   --> Channel of eth_frame (tx) -->  PHY 
+     Layer  <-- Channel of eth_frame (rx) <-- Layer
+            <--       Indications         <--      
+   </pre>
+   <p>
+   Interface between MAC and PHY layers
+</center>
+
+<h2>Step 3: Data model</h2>
+
+<p>
+The same data model will be used by the MAC service and PLS service
+interfaces. It must meet the requirements outlined in sections 3 and
+31.4.1 and appendices 31A and 31B. It must be able to handle normal,
+tagged and all forms of control frames.
+
+<p>
+<b>Should the preamble and SFD be part of the frame?</b>
+<p>
+The preamble and SFD are not visible to the MAC service interface but
+are visible in the PLS service interface. They carry constant
+information that may consume a significant amount of memory as
+thousands of frames may be registered in teh scoreboard, waiting to be
+received, or flowing through the verification
+environment. Furthermore, the value of the preamble and SFD do not
+affect the validity of the frame as they have a purely physical
+purpose. Having them in the frame data would make it easy to corrupt
+or modify them to inject errors, but that can be easily accomplished
+via a callback in the PHY layer transactors. Because preamble and SFD
+error injection is a small part of the verification process, it will
+be better to leave the preamble and SFD data out of the frame data
+model.
+
+<p>
+<b>Should the pad data be part of the frame?</b>
+<p>
+For the same reason as above, the pad data should not be included in
+the data model.
+
+<p>
+<b>Should the FCS be part of the frame?</b>
+<p>
+The FCS is critical in identifying which frames are valid or
+not. Frames with a bad FCS could be rejected by the PHY layer
+transactors and never passed to the MAC layer transactor. Corrupting
+the FCS for a frame can be done using a mechanism similar to injecting
+any other transmission-time error. The FCS will therefore not be
+included either.
+
+<p>
+Because untagged, tagged and control frames can be transmitted on the
+same medium, a single class will be used to model all of them using a
+discrimant property (format). The control frames have a well-defined
+structure. Their fixed payload formats are thus modeled as explicit
+properties, controlled by an additional discriminant property
+(opcode). The frame type values that identify a tagged ('h8100) or
+control ('h8808) frame need not be modelled. They can be inserted and
+interpreted in the byte_pack() and byte_unpack() methods respectively.
+<p>
+<pre>
+   class eth_frame extends vmm_data;
+      typedef enum {UNTAGGED, TAGGED, CONTROL} frame_formats_e;
+      rand frame_formats_e format;
+       
+      static vmm_log log = new("eth_frame", "class");
+
+      rand bit [47:0] dst;
+      rand bit [47:0] src;
+   
+      rand bit [ 2:0] user_priority;  // if TAGGED
+      rand bit        cfi;            // if TAGGED
+      rand bit [11:0] vlan_id;        // if TAGGED
+   
+      rand bit [15:0] len_typ;
+      rand bit [15:0] opcode;      // if CONTROL
+      rand bit [15:0] pause_time;  // if opcode == PAUSE
+       
+      rand bit [ 7:0] data[];
+      ...
+   endclass: eth_frame
+</pre>
+
+<p>
+Constraining the frame to yield valid instances is simple, but
+arranging them into different constraint blocks to make it easier to
+override requires careful planning. Because there is so much variation
+on the valid length for the data class property depending on the value
+of other class properties, introducing intermediate min_len and
+max_len properties will make it easier to constrain for interesting
+tests. It will avoid unnecessarily replicating complex constraint
+expression to simply make all frames minimum length or not-quite
+maximum length. It is also a good opportunity for modifying the
+distribution to create more instances of the interesting corner cases.
+<p>
+<pre>
+   class eth_frame extends vmm_data;
+      ...
+      rand integer min_len;
+      rand integer max_len;
+   
+      constraint valid_data_size {
+         data.size() dist {min_len               :/ 1,
+                           [min_len+1:max_len-1] :/ 1,
+                           max_len               :/ 1};
+      }
+      ...
+   endclass: eth_frame
+</pre>
+<p>
+
+<h2>Step 4: Physical Interfaces</h2>
+
+<p>
+The MII interface is a bidirectional point-to-point interface between
+a MAC-layer and a PHY-layer device. Although symetrical, no need for
+seperating TX and RX directions. Encapsulate as a single signal
+interface.
+<p>
+<pre>
+   interface mii_if;
+
+      wire [3:0] tx_d;
+      wire       tx_en;
+      wire       tx_err;
+      wire       tx_clk;
+      wire [3:0] rx_d;
+      wire       rx_dv;
+      wire       rx_err;
+      wire       rx_clk;
+      wire       crs;
+      wire       col;
+      ...
+   endinterface: mii_if
+</pre>
+
+<p>
+There are two clocking domains: Tx and Rx. Each require it own clocking
+block to synchronize and sample the synchronous signals appropriately
+<p>
+<pre>
+   interface mii_if;
+      ...
+      parameter setup_time = 1ns;
+      parameter hold_time  = 1ns;
+
+      clocking tx @ (posedge tx_clk);
+         default input setup_time output hold_time;
+         inout tx_d, tx_en, tx_err;
+      endclocking
+
+      clocking rx @ (posedge rx_clk);
+         default input setup_time output hold_time;
+         inout rx_d, rx_dv, rx_err;
+      endclocking
+      ...
+   endinterface: mii_if
+</pre>
+
+<p>
+Because it is point-to-point, there can only be three perspective on
+the interface: MAC layer, PHY layer and a passive monitor. They all
+differ only in the direction of their signals.
+<p>
+<pre>
+   interface mii_if;
+      ...
+      modport mac_layer (output .tx_d  (tx.tx_d);
+                         output .tx_en (tx.tx_en);
+                         output .tx_err(tx.tx_err);
+                         input  .rx_d  (rx.rx_d);
+                         input  .rx_dv (rx.rx_dv);
+                         input  .rx_err(rx.rx_err);
+                         input  crs;
+                         input  col;
+                         clocking tx;
+                         clocking rx);
+
+      modport phy_layer (input  .tx_d  (tx.tx_d);
+                         input  .tx_en (tx.tx_en);
+                         input  .tx_err(tx.tx_err);
+                         output .rx_d  (rx.rx_d);
+                         output .rx_dv (rx.rx_dv);
+                         output .rx_err(rx.rx_err);
+                         output crs;
+                         output col;
+                         clocking tx;
+                         clocking rx);
+
+      modport passive (input .tx_d  (tx.tx_d);
+                       input .tx_en (tx.tx_en);
+                       input .tx_err(tx.tx_err);
+                       input .rx_d  (rx.rx_d);
+                       input .rx_dv (rx.rx_dv);
+                       input .rx_err(rx.rx_err);
+                       input crs;
+                       input col;
+                       clocking tx;
+                       clocking rx);
+   endinterface: mii_if
+</pre>
+
+<h2>Step 5: Transactors</h2>
+
+<p>
+Transactors need to be able to interact with each other and provide
+a useful set of functions on top of which to build verification
+environments and transaction-level models. Based on the layers
+identified earlier, the required transactors are:
+<p>
+<pre>
+                                     ^ ^
+                                     | |
+                                 +---------+
+                                 |   MAC   |
+                                 | monitor |
+                                 +---------+
+                                     ^ ^
+                                     | |
+                                 +---------+
+                                 |   MII   |
+                                 | monitor |
+                                 +---------+
+                                     ^ ^
+      +-------+   +-----------+      | |      +-----------+   +-------+
+   <--|  MAC  |<--| MAC-layer |<--   MII   <--| PHY-layer |<--|  MAC  |<--
+   -->| Layer |-->|    MII    |--> signals -->|   MII     |-->| Layer |-->
+      +-------+   +-----------+               +-----------+   +-------+
+</pre>
+
+<h3>Functional-Layer Transactors</h3>
+
+<p>
+The MAC-layer following parameters are configurable:
+<p>
+<ol>
+   <li>Full or half duplex
+   <li>Maximum number of attempts
+</ol>
+<p>
+<pre>
+   class eth_mac_cfg;
+      rand bit full_duplex;
+      rand int unsigned max_attempts;
+
+      constraint default_values {
+         max_attempts == 10;
+      }
+   endclass: eth_mac_cfg
+</pre>
+
+<p>
+The interface around the functional-layer transactors have already
+been defined when the layers were earlier identified.
+<p>
+<ol>
+   <li>A channel of eth_frame to transmit from the higher-layers
+   <li>A channel of received eth_frame to the higher-layers
+   <li>A channel of eth_frame to transmit to the command-layer transactor
+   <li>A channel of received eth_frame from the command-layer transactor
+   <li>A PLS indicator from the command-layer transactor
+</ol>
+<p>
+<pre>
+   class eth_mac extends vmm_xactor;
+
+      eth_frame_channel tx_chan;
+      eth_frame_channel rx_chan;
+
+      eth_frame_channel   pls_tx_chan;
+      eth_frame_channel   pls_rx_chan;
+      eth_pls_indications pls_indications;
+
+      extern function new(string              instance,
+                          int unsigned        stream_id = -1,
+                          eth_mac_cfg         cfg,
+                          eth_frame_channel   tx_chan         = null;
+                          eth_frame_channel   rx_chan         = null;
+                          eth_frame_channel   pls_tx_chan     = null;
+                          eth_frame_channel   pls_rx_chan     = null;
+                          eth_pls_indications pls_indications = null);
+      ...
+   endclass: eth_mac
+</pre>
+
+<p>
+A callback method is required before transmitting a frame, to give the
+opportunity to modify it. Blocking the execution woudl simply stretch
+the interframe gap.
+<p>
+<pre>
+   virtual task pre_frame_tx(eth_mac       xactor,
+                             ref eth_frame frame
+                             ref bit       drop)
+   endtask
+</pre>
+
+<p>
+A callback method is required after the frame has been transmitted
+with a description of the transmission result, so it can be recorded
+in the scoreboard or a coverage model. Blocking the execution woudl
+simply stretch the interframe gap.
+<p>
+<pre>
+   virtual task post_frame_tx(eth_mac                   xactor,
+                              const eth_frame           frame,
+                              const eth_frame_tx_status status)
+   endtask
+</pre>
+
+<p>
+A callback method is required after the frame has been received, so it
+can be checkd against in the scoreboard or recorded in a coverage model.
+Blocking the execution may cause some data to be missed.
+<p>
+<pre>
+   virtual function void post_frame_rx(eth_mac         xactor,
+                                       const eth_frame frame)
+   endtask
+</pre>
+
+<p>
+The monitor has the exact same interfaces, except that, being passive,
+all data flows toward the higher layers.
+<p>
+<pre>
+   class eth_mac_monitor extends vmm_xactor;
+
+      eth_frame_channel to_phy_chan;
+      eth_frame_channel to_mac_chan;
+
+      eth_frame_channel   pls_to_phy_chan;
+      eth_frame_channel   pls_to_mac_chan;
+      eth_pls_indications pls_indications;
+
+      extern function new(string              instance,
+                          int unsigned        stream_id = -1,
+                          eth_mac_cfg         cfg,
+                          eth_frame_channel   to_phy_chan     = null;
+                          eth_frame_channel   to_mac_chan     = null;
+                          eth_frame_channel   pls_to_phy_chan = null;
+                          eth_frame_channel   pls_to_mac_chan = null;
+                          eth_pls_indications pls_indications = null);
+      ...
+   endclass: eth_mac_monitor
+</pre>
+
+<p>
+A callback method is required after the frame has been received, so it
+can be checkd against in the scoreboard or recorded in a coverage
+model. Blocking the execution may cause some data to be missed. Rather
+than using two seperate callbacks, a single callback with an
+indication of the direction is used.
+<p>
+<pre>
+   typedef enum {TO_MAC, TO_PHY} directions_e;
+   virtual function void post_frame_rx(eth_mac_layer      xactor,
+                                       const directions_e direction,
+                                       const eth_frame    frame)
+   endtask
+</pre>
+
+<p>
+<h3>Command-Layer Transactors</h3>
+
+<p>
+Three command-layer transactors will be required: One that drives the
+MII interface in the MAC-to-PHY direction, one that drives the MII
+interface in the PHY-to-MII direction and one that passively monitors
+the MII interface.
+
+
+<p>
+The MII interface has following configurable parameters:
+<p>
+<ol>
+   <li>10Mb/s or 100Mb/s
+</ol>
+<p>
+<pre>
+   class mii_cfg;
+      rand bit is_10Mb;
+   endclass: mii_cfg
+</pre>
+
+<p>
+The interface around the functional-layer transactors have already
+been defined when the layers were earlier identified.
+<p>
+<ol>
+   <li>Physical signals
+   <li>A channel of eth_frame to transmit from the mac-layer transactor
+   <li>A channel of received eth_frame to the mac-layer transactor
+   <li>A PLS indicator to the mac-layer transactor
+</ol>
+
+<p>
+The MAC-layer MII transactor interfaces between the MAC protocol layer
+and the PHY protocol layer.
+<p>
+<pre>
+   class mii_mac_layer extends vmm_xactor;
+
+      virtual mii_if.mac_layer sigs;
+
+      eth_frame_channel   tx_chan;
+      eth_frame_channel   rx_chan;
+      eth_pls_indications indications;
+
+      extern function new(string                   instance,
+                          int unsigned             stream_id = -1,
+                          mii_cfg                  cfg,
+                          virtual mii_if.mac_layer sigs,
+                          eth_frame_channel        tx_chan     = null,
+                          eth_frame_channel        rx_chan     = null,
+                          eth_pls_indications      indications = null,
+                          eth_frame                rx_factory  = null);
+      ...
+   endclass: mii_mac_layer
+</pre>
+
+<p>
+A callback method is required before transmitting a frame, to give the
+opportunity to modify it. At this layer, the frame is translated as a
+series of bytes, including preamble, SFD, padding and FCS. The
+original frame is provided for reference purposes. Blocking the
+execution would simply stretch the interframe gap.
+<p>
+<pre>
+   virtual task pre_frame_tx(mii_mac_layer xactor,
+                             const eth_frame frame,
+                             bit [7:0]       bytes[]);
+   endtask
+</pre>
+
+<p>
+A callback method is required before transmitting a symbol to give an
+opportunity to modify it. Data is supplied to provide context
+information about the symbol about to be transmitted. Blocking the
+execution may stretch the previous symbol into the next clock cycle.
+<p>
+<pre>
+   virtual task pre_symbol_tx(mii_mac_layer xactor,
+                              const eth_frame frame,
+                              const bit [7:0] bytes[],
+                              const integer   nibble_no,
+                              ref bit [3:0]   symbol,
+                              ref bit         en,
+                              ref bit         err,
+                              ref bit         drop);
+   endtask
+</pre>
+
+<p>
+A callback method is required after the frame has been transmitted
+with an indication of the success or failure of the transmission
+result, so it can be recorded in the scoreboard or a coverage
+model. Blocking the execution would simply stretch the interframe gap.
+<p>
+<pre>
+   virtual task post_frame_tx(mii_mac_layer   xactor,
+                              const eth_frame frame,
+                              const bit [7:0] bytes[],
+                              const bit       error);
+   endtask
+</pre>
+
+<p>
+A callback method is required after the frame has been received, so it
+can be checkd against in the scoreboard or recorded in a coverage model.
+Blocking the execution may cause some data to be missed.
+<p>
+<pre>
+   virtual function void post_frame_rx(mii_mac_layer   xactor,
+                                       const eth_frame frame,
+                                       const bit [7:0] bytes[]);
+   endtask
+</pre>
+
+<p>
+A callback method is required after a new symbol has been sampled, so
+it can be checkd against in the scoreboard or recorded in a coverage
+model.  Blocking the execution may cause some data to be missed.
+<p>
+<pre>
+   virtual function post_symbol_rx(mii_mac_layer   xactor,
+                                   const integer   nibble_count,
+                                   const bit [3:0] symbol,
+                                   const bit       dv,
+                                   const bit       err);
+   endtask
+</pre>
+
+<p>
+The PHY-layer MII transactor interfaces in the opposite direction of
+the MAC-layer MII transactor. It is the interface presented by
+PHY-layer devices. Unlike its counterpart, it drives the CRS and COL
+signals instead of simply monitoring them. It should be able to
+interface directly with the MAC-layer functional transactor. The CRS
+signal and corresponding CARRIER indication can be generated internally
+whenever a valid symbols is transmitted. The COL signal and its
+corresponding COLLISION indication can never be asserted as it is
+a function of the PHY-layer device, not a MAC-layer device that the
+MAC-layer functional transactor replaces. Nonetheless, if the
+COLLISION indication is asserted by the user, the transactor should
+operate appropriately.
+
+<p>
+The user interface (public class properties, constructor and callback
+methods) are identical to te MAC-layer MII transactor.
+
+<p>
+This transactor will be suitable for exercising a MAC-layer device
+or modelling a switch. But, because the frame is entirely submitted
+before being physically transmitted and sampled before being received,
+it is not suitable for modeling a hub.
+
+<p>
+The monitor has the exact same interface as the other command-later
+transactors, except that, being passive, all data flows toward the
+higher layers.
+<p>
+<pre>
+   class mii_monitor extends vmm_xactor;
+
+      virtual mii_if.passive sigs;
+
+      eth_frame_channel   to_phy_chan;
+      eth_frame_channel   to_mac_chan;
+      eth_pls_indications indications;
+
+      extern function new(string                   instance,
+                          int unsigned             stream_id = -1,
+                          mii_cfg                  cfg,
+                          virtual mii_if.phy_layer sigs,
+                          eth_frame_channel        to_phy_chan    = null,
+                          eth_frame_channel        to_mac_chan    = null,
+                          eth_pls_indications      indications    = null,
+                          eth_frame                to_phy_factory = null,
+                          eth_frame                to_mac_factory = null);
+      ...
+   endclass: mii_monitor
+</pre>
+
+<p>
+A callback method is required after the frame has been received, so it
+can be checkd against in the scoreboard or recorded in a coverage
+model. Blocking the execution may cause some data to be missed. Rather
+than using two seperate callbacks, a single callback with an
+indication of the direction is used.
+<p>
+<pre>
+   typedef enum {TO_MAC, TO_PHY} direction_e;
+   virtual function void post_frame_rx(mii_monitor       xactor,
+                                       const direction_e direction,
+                                       const eth_frame   frame,
+                                       const bit [7:0]   bytes[]);
+   endtask
+</pre>
+
+<p>
+A callback method is required after a symbol has been received, so it
+can be checkd against in the scoreboard or recorded in a coverage
+model. Blocking the execution may cause some data to be missed. Rather
+than using two seperate callbacks, a single callback with an
+indication of the direction is used.
+<p>
+<pre>
+   virtual function void post_symbol_rx(mii_monitor       xactor,
+                                        const direction_e direction,
+                                        const integer     nibble_no,
+                                        const bit [3:0]   symbol,
+                                        const bit         dv,
+                                        const bit         err);
+   endtask
+</pre>
+
+</body>
+</html>

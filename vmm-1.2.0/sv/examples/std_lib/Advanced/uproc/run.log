@@ -1,0 +1,14 @@
+Command: ./simv -l run.log
+Chronologic VCS simulator copyright 1991-2008
+Contains Synopsys proprietary information.
+Compiler version C-2009.06-1; Runtime version C-2009.06-1;  Jul 27 08:28 2009
+
+Normal[NOTE] on vmm_simulation(class) at                    0:
+    Running Test Case test1
+Normal[NOTE] on vmm_simulation(class) at                    0:
+    Test Case test1 Done
+Simulation PASSED on /./ (/./) at                    0 (0 warnings, 0 demoted errors & 0 demoted warnings)
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 0
+CPU Time:      0.070 seconds;       Data structure size:   0.0Mb
+Mon Jul 27 08:28:06 2009

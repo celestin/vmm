@@ -1,0 +1,967 @@
+Command: ./simv +vmm_test=test1+test2 +vmm_opts+num_of_dl_pusc_subchannels=28@%phy_cfg_inst_string_name -l run.log
+Chronologic VCS simulator copyright 1991-2008
+Contains Synopsys proprietary information.
+Compiler version C-2009.06-1; Runtime version C-2009.06-1;  Jul 27 08:27 2009
+
+Normal[NOTE] on vmm_simulation(class) at                    0:
+    test name is test1+test2
+Normal[NOTE] on vmm_simulation(class) at                    0:
+    Running Test Case test1
+Normal[NOTE] on class P.phy_generator(phy_gen) at                    0:
+    P.\phy_generator::start_of_sim_ph  - Phy frame type is class P.phy_frame
+Normal[NOTE] on class P.phy_generator(phy_gen) at                    0:
+    	************** PHY_CFG ***************
+    	num_of_frames              : 1
+    	num_of_dl_pusc_subchannels : 28
+    	num_of_dl_fusc_subchannels : 16
+    	num_of_ul_subchannels      : 27
+    
+Normal[NOTE] on class P.phy_generator(phy_gen) at                    0:
+    Frame 0 is built successfully
+Normal[NOTE] on class P.phy_generator(phy_gen) at                    0:
+    
+    ---  --- class P.phy_frame --- Frame #0  --------------------------------------------
+    Length=48 symbols, NumOfSuperZones=3, Total Bursts=64
+    
+        SuperZone #0: RX_SUPER_ZONE DOWNLINK WIMAX NumOfZones=4, Length=11 symbols
+    	************************************************
+    		    SuperZone #0: Zone #0: Zone RX_ZONE
+    	************************************************
+    	zone_index              : 0d0
+    	zone_type               : WIMAX_ZONE
+    	permutation             : PUSC
+    	num_of_slots            : 28
+    	num_of_symbols          : 2
+    	stc_mode                : STC_2
+    	matrix                  : MATRIX_BH
+    	mac_report_gen_intrpt   : 1
+    	phy_report_gen_intrpt   : 1
+    	disable_rotation_scheme : 1
+    	color_map_continue      : 0
+    	PRBS ID                 : 0x0
+    	next_zone               : RX_ZONE
+    	throwing_samples        : 0d864
+    	burst_buffer_index      : 0x0
+    	rotation_buffer_index   : 0x0
+    	perm_table_index        : 0xc
+    	num_of_bursts           : 4
+    	antenna_coef_ptr        : 0x73aa
+    	************************************************
+    Total area = 28, NumOfBursts = 4
+    0: Area = 10 slots (20), len = 2, depth = 10: start_symb=0, start_subchan=1
+    1: Area = 7 slots (14), len = 2, depth = 7: start_symb=0, start_subchan=11
+    2: Area = 1 slots (2), len = 2, depth = 1: start_symb=0, start_subchan=21
+    3: Area = 3 slots (6), len = 2, depth = 3: start_symb=0, start_subchan=22
+    
+          0
+      ____
+     0|   #
+     1|   0
+     2|   0
+     3|   0
+     4|   0
+     5|   0
+     6|   0
+     7|   0
+     8|   0
+     9|   0
+    10|   0
+    11|   1
+    12|   1
+    13|   1
+    14|   1
+    15|   1
+    16|   1
+    17|   1
+    18|   #
+    19|   #
+    20|   #
+    21|   2
+    22|   3
+    23|   3
+    24|   3
+    25|   #
+    26|   #
+    27|   #
+    	************************************************
+    		    SuperZone #0: Zone #1: Zone RX_ZONE
+    	************************************************
+    	zone_index              : 0d1
+    	zone_type               : WIMAX_ZONE
+    	permutation             : PUSC
+    	num_of_slots            : 28
+    	num_of_symbols          : 2
+    	stc_mode                : STC_2
+    	matrix                  : MATRIX_BH
+    	mac_report_gen_intrpt   : 1
+    	phy_report_gen_intrpt   : 1
+    	disable_rotation_scheme : 0
+    	color_map_continue      : 0
+    	PRBS ID                 : 0x0
+    	next_zone               : RX_ZONE
+    	throwing_samples        : 0d481
+    	burst_buffer_index      : 0x3
+    	rotation_buffer_index   : 0x1
+    	perm_table_index        : 0x8
+    	num_of_bursts           : 6
+    	antenna_coef_ptr        : 0x19a4
+    	************************************************
+    Total area = 28, NumOfBursts = 6
+    0: Area = 3 slots (6), len = 2, depth = 3: start_symb=2, start_subchan=0
+    1: Area = 15 slots (30), len = 2, depth = 15: start_symb=2, start_subchan=3
+    2: Area = 3 slots (6), len = 2, depth = 3: start_symb=2, start_subchan=18
+    3: Area = 2 slots (4), len = 2, depth = 2: start_symb=2, start_subchan=21
+    4: Area = 1 slots (2), len = 2, depth = 1: start_symb=2, start_subchan=23
+    5: Area = 4 slots (8), len = 2, depth = 4: start_symb=2, start_subchan=24
+    
+          2
+      ____
+     0|   4
+     1|   4
+     2|   4
+     3|   5
+     4|   5
+     5|   5
+     6|   5
+     7|   5
+     8|   5
+     9|   5
+    10|   5
+    11|   5
+    12|   5
+    13|   5
+    14|   5
+    15|   5
+    16|   5
+    17|   5
+    18|   6
+    19|   6
+    20|   6
+    21|   7
+    22|   7
+    23|   8
+    24|   9
+    25|   9
+    26|   9
+    27|   9
+    	************************************************
+    		    SuperZone #0: Zone #2: Zone RX_ZONE
+    	************************************************
+    	zone_index              : 0d2
+    	zone_type               : WIMAX_ZONE
+    	permutation             : PUSC
+    	num_of_slots            : 84
+    	num_of_symbols          : 6
+    	stc_mode                : STC_2
+    	matrix                  : MATRIX_C
+    	mac_report_gen_intrpt   : 0
+    	phy_report_gen_intrpt   : 0
+    	disable_rotation_scheme : 0
+    	color_map_continue      : 0
+    	PRBS ID                 : 0x0
+    	next_zone               : RX_ZONE
+    	throwing_samples        : 0d632
+    	burst_buffer_index      : 0x2
+    	rotation_buffer_index   : 0x0
+    	perm_table_index        : 0xf
+    	num_of_bursts           : 9
+    	antenna_coef_ptr        : 0x7353
+    	************************************************
+    Total area = 84, NumOfBursts = 9
+    0: Area = 2 slots (4), len = 4, depth = 1: start_symb=4, start_subchan=0
+    1: Area = 2 slots (4), len = 4, depth = 1: start_symb=4, start_subchan=1
+    2: Area = 2 slots (4), len = 4, depth = 1: start_symb=4, start_subchan=2
+    3: Area = 9 slots (18), len = 6, depth = 3: start_symb=4, start_subchan=3
+    4: Area = 12 slots (24), len = 6, depth = 4: start_symb=4, start_subchan=6
+    5: Area = 16 slots (32), len = 4, depth = 8: start_symb=6, start_subchan=10
+    6: Area = 2 slots (4), len = 4, depth = 1: start_symb=6, start_subchan=18
+    7: Area = 8 slots (16), len = 2, depth = 8: start_symb=8, start_subchan=19
+    8: Area = 1 slots (2), len = 2, depth = 1: start_symb=8, start_subchan=27
+    
+          4   6   8
+      ____________
+     0|  10  10   #
+     1|  11  11   #
+     2|  12  12   #
+     3|  13  13  13
+     4|  13  13  13
+     5|  13  13  13
+     6|  14  14  14
+     7|  14  14  14
+     8|  14  14  14
+     9|  14  14  14
+    10|   #  15  15
+    11|   #  15  15
+    12|   #  15  15
+    13|   #  15  15
+    14|   #  15  15
+    15|   #  15  15
+    16|   #  15  15
+    17|   #  15  15
+    18|   #  16  16
+    19|   #   #  17
+    20|   #   #  17
+    21|   #   #  17
+    22|   #   #  17
+    23|   #   #  17
+    24|   #   #  17
+    25|   #   #  17
+    26|   #   #  17
+    27|   #   #  18
+    	************************************************
+    		    SuperZone #0: Zone #3: Zone RX_ZONE
+    	************************************************
+    	zone_index              : 0d3
+    	zone_type               : WIMAX_ZONE
+    	permutation             : FUSC
+    	num_of_slots            : 16
+    	num_of_symbols          : 1
+    	stc_mode                : STC_3
+    	matrix                  : MATRIX_B
+    	mac_report_gen_intrpt   : 0
+    	phy_report_gen_intrpt   : 1
+    	disable_rotation_scheme : 1
+    	color_map_continue      : 1
+    	PRBS ID                 : 0x0
+    	next_zone               : TX_ZONE
+    	throwing_samples        : 0d404
+    	burst_buffer_index      : 0x2
+    	rotation_buffer_index   : 0x3
+    	perm_table_index        : 0x2
+    	num_of_bursts           : 6
+    	antenna_coef_ptr        : 0x9e91
+    	************************************************
+    Total area = 16, NumOfBursts = 6
+    0: Area = 1 slots (1), len = 1, depth = 1: start_symb=10, start_subchan=1
+    1: Area = 1 slots (1), len = 1, depth = 1: start_symb=10, start_subchan=2
+    2: Area = 1 slots (1), len = 1, depth = 1: start_symb=10, start_subchan=3
+    3: Area = 2 slots (2), len = 1, depth = 2: start_symb=10, start_subchan=4
+    4: Area = 7 slots (7), len = 1, depth = 7: start_symb=10, start_subchan=6
+    5: Area = 3 slots (3), len = 1, depth = 3: start_symb=10, start_subchan=13
+    
+         10
+      ____
+     0|   #
+     1|  19
+     2|  20
+     3|  21
+     4|  22
+     5|  22
+     6|  23
+     7|  23
+     8|  23
+     9|  23
+    10|  23
+    11|  23
+    12|  23
+    13|  24
+    14|  24
+    15|  24
+    
+    
+        SuperZone #1: TX_SUPER_ZONE DOWNLINK WIMAX NumOfZones=7, Length=10 symbols
+    	************************************************
+    	    SuperZone #1: Zone #0: TX_ZONE
+    	************************************************
+    	zone_index       : 0d4
+    	zone_type        : WIMAX_ZONE
+    	permutation      : PUSC
+    	DL preamble      : 0
+    	next_zone        : TX_ZONE
+    	padding_samples  : 0x5a2
+    	zone_length      : 2 symbols
+    	FB_offset        : 11
+    	PRBS ID          : 0x0
+    	DL_PERMBase      : 0x19
+    	num_of_bursts    : 1
+    	stc_mode         : NO_STC
+    	matrix           : MATRIX_B
+    	beam_select      : 0x3
+    	use_sub_channel  : 0
+    	dedicated_pilots : 0
+    	zone_boosting    : 0x0
+    	data_rot_assist  : 0xb741
+    	antenna_coef_ptr : 0x509c
+    	************************************************
+    Total area = 28, NumOfBursts = 1
+    0: Area = 6 slots (12), len = 2, depth = 6: start_symb=11, start_subchan=12
+    
+         11
+      ____
+     0|   #
+     1|   #
+     2|   #
+     3|   #
+     4|   #
+     5|   #
+     6|   #
+     7|   #
+     8|   #
+     9|   #
+    10|   #
+    11|   #
+    12|  25
+    13|  25
+    14|  25
+    15|  25
+    16|  25
+    17|  25
+    18|   #
+    19|   #
+    20|   #
+    21|   #
+    22|   #
+    23|   #
+    24|   #
+    25|   #
+    26|   #
+    27|   #
+    	************************************************
+    	    SuperZone #1: Zone #1: TX_ZONE
+    	************************************************
+    	zone_index       : 0d5
+    	zone_type        : WIMAX_ZONE
+    	permutation      : FUSC
+    	DL preamble      : 0
+    	next_zone        : TX_ZONE
+    	padding_samples  : 0x3db
+    	zone_length      : 1 symbols
+    	FB_offset        : 13
+    	PRBS ID          : 0x0
+    	DL_PERMBase      : 0xe
+    	num_of_bursts    : 9
+    	stc_mode         : NO_STC
+    	matrix           : MATRIX_B
+    	beam_select      : 0x6
+    	use_sub_channel  : 0
+    	dedicated_pilots : 1
+    	zone_boosting    : 0x0
+    	data_rot_assist  : 0x11f7
+    	antenna_coef_ptr : 0x531e
+    	************************************************
+    Total area = 16, NumOfBursts = 9
+    0: Area = 1 slots (1), len = 1, depth = 1: start_symb=13, start_subchan=0
+    1: Area = 1 slots (1), len = 1, depth = 1: start_symb=13, start_subchan=1
+    2: Area = 1 slots (1), len = 1, depth = 1: start_symb=13, start_subchan=2
+    3: Area = 1 slots (1), len = 1, depth = 1: start_symb=13, start_subchan=3
+    4: Area = 2 slots (2), len = 1, depth = 2: start_symb=13, start_subchan=4
+    5: Area = 1 slots (1), len = 1, depth = 1: start_symb=13, start_subchan=6
+    6: Area = 3 slots (3), len = 1, depth = 3: start_symb=13, start_subchan=7
+    7: Area = 5 slots (5), len = 1, depth = 5: start_symb=13, start_subchan=10
+    8: Area = 1 slots (1), len = 1, depth = 1: start_symb=13, start_subchan=15
+    
+         13
+      ____
+     0|  26
+     1|  27
+     2|  28
+     3|  29
+     4|  30
+     5|  30
+     6|  31
+     7|  32
+     8|  32
+     9|  32
+    10|  33
+    11|  33
+    12|  33
+    13|  33
+    14|  33
+    15|  34
+    	************************************************
+    	    SuperZone #1: Zone #2: TX_ZONE
+    	************************************************
+    	zone_index       : 0d6
+    	zone_type        : WIMAX_ZONE
+    	permutation      : FUSC
+    	DL preamble      : 0
+    	next_zone        : TX_ZONE
+    	padding_samples  : 0xe4
+    	zone_length      : 1 symbols
+    	FB_offset        : 14
+    	PRBS ID          : 0x0
+    	DL_PERMBase      : 0x9
+    	num_of_bursts    : 2
+    	stc_mode         : STC_3
+    	matrix           : MATRIX_B
+    	beam_select      : 0xc
+    	use_sub_channel  : 1
+    	dedicated_pilots : 1
+    	zone_boosting    : 0x0
+    	data_rot_assist  : 0xc5f7
+    	antenna_coef_ptr : 0x4fa7
+    	************************************************
+    Total area = 16, NumOfBursts = 2
+    0: Area = 7 slots (7), len = 1, depth = 7: start_symb=14, start_subchan=0
+    1: Area = 6 slots (6), len = 1, depth = 6: start_symb=14, start_subchan=10
+    
+         14
+      ____
+     0|  35
+     1|  35
+     2|  35
+     3|  35
+     4|  35
+     5|  35
+     6|  35
+     7|   #
+     8|   #
+     9|   #
+    10|  36
+    11|  36
+    12|  36
+    13|  36
+    14|  36
+    15|  36
+    	************************************************
+    	    SuperZone #1: Zone #3: TX_ZONE
+    	************************************************
+    	zone_index       : 0d7
+    	zone_type        : WIMAX_ZONE
+    	permutation      : PUSC
+    	DL preamble      : 0
+    	next_zone        : TX_ZONE
+    	padding_samples  : 0x368
+    	zone_length      : 2 symbols
+    	FB_offset        : 15
+    	PRBS ID          : 0x0
+    	DL_PERMBase      : 0x4
+    	num_of_bursts    : 2
+    	stc_mode         : NO_STC
+    	matrix           : MATRIX_C
+    	beam_select      : 0xd
+    	use_sub_channel  : 0
+    	dedicated_pilots : 0
+    	zone_boosting    : 0x0
+    	data_rot_assist  : 0x5853
+    	antenna_coef_ptr : 0x1f40
+    	************************************************
+    Total area = 28, NumOfBursts = 2
+    0: Area = 7 slots (14), len = 2, depth = 7: start_symb=15, start_subchan=0
+    1: Area = 16 slots (32), len = 2, depth = 16: start_symb=15, start_subchan=7
+    
+         15
+      ____
+     0|  37
+     1|  37
+     2|  37
+     3|  37
+     4|  37
+     5|  37
+     6|  37
+     7|  38
+     8|  38
+     9|  38
+    10|  38
+    11|  38
+    12|  38
+    13|  38
+    14|  38
+    15|  38
+    16|  38
+    17|  38
+    18|  38
+    19|  38
+    20|  38
+    21|  38
+    22|  38
+    23|   #
+    24|   #
+    25|   #
+    26|   #
+    27|   #
+    	************************************************
+    	    SuperZone #1: Zone #4: TX_ZONE
+    	************************************************
+    	zone_index       : 0d8
+    	zone_type        : WIMAX_ZONE
+    	permutation      : FUSC
+    	DL preamble      : 0
+    	next_zone        : TX_ZONE
+    	padding_samples  : 0x41e
+    	zone_length      : 1 symbols
+    	FB_offset        : 17
+    	PRBS ID          : 0x0
+    	DL_PERMBase      : 0x29
+    	num_of_bursts    : 5
+    	stc_mode         : STC_2
+    	matrix           : MATRIX_C
+    	beam_select      : 0xf
+    	use_sub_channel  : 1
+    	dedicated_pilots : 0
+    	zone_boosting    : 0x0
+    	data_rot_assist  : 0x6eec
+    	antenna_coef_ptr : 0xe630
+    	************************************************
+    Total area = 16, NumOfBursts = 5
+    0: Area = 2 slots (2), len = 1, depth = 2: start_symb=17, start_subchan=0
+    1: Area = 4 slots (4), len = 1, depth = 4: start_symb=17, start_subchan=2
+    2: Area = 7 slots (7), len = 1, depth = 7: start_symb=17, start_subchan=6
+    3: Area = 1 slots (1), len = 1, depth = 1: start_symb=17, start_subchan=13
+    4: Area = 2 slots (2), len = 1, depth = 2: start_symb=17, start_subchan=14
+    
+         17
+      ____
+     0|  39
+     1|  39
+     2|  40
+     3|  40
+     4|  40
+     5|  40
+     6|  41
+     7|  41
+     8|  41
+     9|  41
+    10|  41
+    11|  41
+    12|  41
+    13|  42
+    14|  43
+    15|  43
+    	************************************************
+    	    SuperZone #1: Zone #5: TX_ZONE
+    	************************************************
+    	zone_index       : 0d9
+    	zone_type        : WIMAX_ZONE
+    	permutation      : PUSC
+    	DL preamble      : 0
+    	next_zone        : TX_ZONE
+    	padding_samples  : 0x599
+    	zone_length      : 2 symbols
+    	FB_offset        : 18
+    	PRBS ID          : 0x0
+    	DL_PERMBase      : 0x34
+    	num_of_bursts    : 1
+    	stc_mode         : STC_2
+    	matrix           : MATRIX_A
+    	beam_select      : 0xd
+    	use_sub_channel  : 0
+    	dedicated_pilots : 1
+    	zone_boosting    : 0x0
+    	data_rot_assist  : 0xf0e2
+    	antenna_coef_ptr : 0xee03
+    	************************************************
+    Total area = 28, NumOfBursts = 1
+    0: Area = 13 slots (26), len = 2, depth = 13: start_symb=18, start_subchan=2
+    
+         18
+      ____
+     0|   #
+     1|   #
+     2|  44
+     3|  44
+     4|  44
+     5|  44
+     6|  44
+     7|  44
+     8|  44
+     9|  44
+    10|  44
+    11|  44
+    12|  44
+    13|  44
+    14|  44
+    15|   #
+    16|   #
+    17|   #
+    18|   #
+    19|   #
+    20|   #
+    21|   #
+    22|   #
+    23|   #
+    24|   #
+    25|   #
+    26|   #
+    27|   #
+    	************************************************
+    	    SuperZone #1: Zone #6: TX_ZONE
+    	************************************************
+    	zone_index       : 0d10
+    	zone_type        : WIMAX_ZONE
+    	permutation      : FUSC
+    	DL preamble      : 0
+    	next_zone        : RX_ZONE
+    	padding_samples  : 0x19e
+    	zone_length      : 1 symbols
+    	FB_offset        : 20
+    	PRBS ID          : 0x0
+    	DL_PERMBase      : 0x36
+    	num_of_bursts    : 7
+    	stc_mode         : STC_3
+    	matrix           : MATRIX_A
+    	beam_select      : 0x9
+    	use_sub_channel  : 0
+    	dedicated_pilots : 1
+    	zone_boosting    : 0x0
+    	data_rot_assist  : 0x22c7
+    	antenna_coef_ptr : 0x39a2
+    	************************************************
+    Total area = 16, NumOfBursts = 7
+    0: Area = 1 slots (1), len = 1, depth = 1: start_symb=20, start_subchan=0
+    1: Area = 1 slots (1), len = 1, depth = 1: start_symb=20, start_subchan=1
+    2: Area = 1 slots (1), len = 1, depth = 1: start_symb=20, start_subchan=2
+    3: Area = 1 slots (1), len = 1, depth = 1: start_symb=20, start_subchan=3
+    4: Area = 3 slots (3), len = 1, depth = 3: start_symb=20, start_subchan=4
+    5: Area = 3 slots (3), len = 1, depth = 3: start_symb=20, start_subchan=7
+    6: Area = 6 slots (6), len = 1, depth = 6: start_symb=20, start_subchan=10
+    
+         20
+      ____
+     0|  45
+     1|  46
+     2|  47
+     3|  48
+     4|  49
+     5|  49
+     6|  49
+     7|  50
+     8|  50
+     9|  50
+    10|  51
+    11|  51
+    12|  51
+    13|  51
+    14|  51
+    15|  51
+    
+    
+        SuperZone #2: RX_SUPER_ZONE UPLINK WIMAX NumOfZones=3, Length=27 symbols
+    	************************************************
+    		    SuperZone #2: Zone #0: Zone RX_ZONE
+    	************************************************
+    	zone_index              : 0d11
+    	zone_type               : WIMAX_ZONE
+    	permutation             : PUSC
+    	num_of_slots            : 108
+    	num_of_symbols          : 12
+    	stc_mode                : STC_3
+    	matrix                  : MATRIX_B
+    	mac_report_gen_intrpt   : 0
+    	phy_report_gen_intrpt   : 0
+    	disable_rotation_scheme : 0
+    	color_map_continue      : 1
+    	PRBS ID                 : 0x0
+    	next_zone               : RX_ZONE
+    	throwing_samples        : 0d1671
+    	burst_buffer_index      : 0x3
+    	rotation_buffer_index   : 0x2
+    	perm_table_index        : 0x3
+    	num_of_bursts           : 5
+    	antenna_coef_ptr        : 0x4388
+    	************************************************
+    Total area = 108, NumOfBursts = 5
+    0: Area = 1 slots (3), len = 3, depth = 1: start_symb=24, start_subchan=0
+    1: Area = 42 slots (126), len = 6, depth = 21: start_symb=24, start_subchan=1
+    2: Area = 3 slots (9), len = 9, depth = 1: start_symb=24, start_subchan=22
+    3: Area = 3 slots (9), len = 3, depth = 3: start_symb=27, start_subchan=23
+    4: Area = 1 slots (3), len = 3, depth = 1: start_symb=27, start_subchan=26
+    
+         21  24  27  30
+      ________________
+     0|   #  52   #   #
+     1|   #  53  53   #
+     2|   #  53  53   #
+     3|   #  53  53   #
+     4|   #  53  53   #
+     5|   #  53  53   #
+     6|   #  53  53   #
+     7|   #  53  53   #
+     8|   #  53  53   #
+     9|   #  53  53   #
+    10|   #  53  53   #
+    11|   #  53  53   #
+    12|   #  53  53   #
+    13|   #  53  53   #
+    14|   #  53  53   #
+    15|   #  53  53   #
+    16|   #  53  53   #
+    17|   #  53  53   #
+    18|   #  53  53   #
+    19|   #  53  53   #
+    20|   #  53  53   #
+    21|   #  53  53   #
+    22|   #  54  54  54
+    23|   #   #  55   #
+    24|   #   #  55   #
+    25|   #   #  55   #
+    26|   #   #  56   #
+    	************************************************
+    		    SuperZone #2: Zone #1: Zone RX_ZONE
+    	************************************************
+    	zone_index              : 0d12
+    	zone_type               : WIMAX_ZONE
+    	permutation             : PUSC
+    	num_of_slots            : 27
+    	num_of_symbols          : 3
+    	stc_mode                : NO_STC
+    	matrix                  : MATRIX_BH
+    	mac_report_gen_intrpt   : 1
+    	phy_report_gen_intrpt   : 0
+    	disable_rotation_scheme : 1
+    	color_map_continue      : 0
+    	PRBS ID                 : 0x0
+    	next_zone               : RX_ZONE
+    	throwing_samples        : 0d58
+    	burst_buffer_index      : 0x0
+    	rotation_buffer_index   : 0x1
+    	perm_table_index        : 0xf
+    	num_of_bursts           : 1
+    	antenna_coef_ptr        : 0x640d
+    	************************************************
+    Total area = 27, NumOfBursts = 1
+    0: Area = 15 slots (45), len = 3, depth = 15: start_symb=33, start_subchan=3
+    
+         33
+      ____
+     0|   #
+     1|   #
+     2|   #
+     3|  57
+     4|  57
+     5|  57
+     6|  57
+     7|  57
+     8|  57
+     9|  57
+    10|  57
+    11|  57
+    12|  57
+    13|  57
+    14|  57
+    15|  57
+    16|  57
+    17|  57
+    18|   #
+    19|   #
+    20|   #
+    21|   #
+    22|   #
+    23|   #
+    24|   #
+    25|   #
+    26|   #
+    	************************************************
+    		    SuperZone #2: Zone #2: Zone RX_ZONE
+    	************************************************
+    	zone_index              : 0d13
+    	zone_type               : WIMAX_ZONE
+    	permutation             : PUSC
+    	num_of_slots            : 108
+    	num_of_symbols          : 12
+    	stc_mode                : STC_3
+    	matrix                  : MATRIX_C
+    	mac_report_gen_intrpt   : 1
+    	phy_report_gen_intrpt   : 1
+    	disable_rotation_scheme : 0
+    	color_map_continue      : 0
+    	PRBS ID                 : 0x0
+    	next_zone               : TX_ZONE
+    	throwing_samples        : 0d859
+    	burst_buffer_index      : 0x3
+    	rotation_buffer_index   : 0x0
+    	perm_table_index        : 0x7
+    	num_of_bursts           : 6
+    	antenna_coef_ptr        : 0x67aa
+    	************************************************
+    Total area = 108, NumOfBursts = 6
+    0: Area = 1 slots (3), len = 3, depth = 1: start_symb=39, start_subchan=0
+    1: Area = 6 slots (18), len = 9, depth = 2: start_symb=39, start_subchan=1
+    2: Area = 2 slots (6), len = 6, depth = 1: start_symb=39, start_subchan=3
+    3: Area = 24 slots (72), len = 9, depth = 8: start_symb=39, start_subchan=4
+    4: Area = 14 slots (42), len = 3, depth = 14: start_symb=42, start_subchan=12
+    5: Area = 2 slots (6), len = 6, depth = 1: start_symb=42, start_subchan=26
+    
+         36  39  42  45
+      ________________
+     0|   #  58   #   #
+     1|   #  59  59  59
+     2|   #  59  59  59
+     3|   #  60  60   #
+     4|   #  61  61  61
+     5|   #  61  61  61
+     6|   #  61  61  61
+     7|   #  61  61  61
+     8|   #  61  61  61
+     9|   #  61  61  61
+    10|   #  61  61  61
+    11|   #  61  61  61
+    12|   #   #  62   #
+    13|   #   #  62   #
+    14|   #   #  62   #
+    15|   #   #  62   #
+    16|   #   #  62   #
+    17|   #   #  62   #
+    18|   #   #  62   #
+    19|   #   #  62   #
+    20|   #   #  62   #
+    21|   #   #  62   #
+    22|   #   #  62   #
+    23|   #   #  62   #
+    24|   #   #  62   #
+    25|   #   #  62   #
+    26|   #   #  63  63
+    
+    
+    ----------------------------------------------------------------------------------
+    
+Normal[NOTE] on vmm_simulation(class) at                    0:
+    Test Case test1 Done
+Normal[NOTE] on vmm_simulation(class) at                    0:
+    Running Test Case test2
+Normal[NOTE] on class P.phy_generator(phy_gen) at                    0:
+    P.\phy_generator::start_of_sim_ph  - Phy frame type is class P.phy_frame
+Normal[NOTE] on Testcase(test2) at                    0:
+    Starting class P.test2 - P.\test2::start_of_sim_ph 
+Normal[NOTE] on class P.phy_generator(phy_gen) at                    0:
+    	************** PHY_CFG ***************
+    	num_of_frames              : 1
+    	num_of_dl_pusc_subchannels : 28
+    	num_of_dl_fusc_subchannels : 16
+    	num_of_ul_subchannels      : 32
+    
+Normal[NOTE] on class P.phy_generator(phy_gen) at                    0:
+    Frame 0 is built successfully
+Normal[NOTE] on class P.phy_generator(phy_gen) at                    0:
+    
+    ---  --- class P.phy_frame --- Frame #0  --------------------------------------------
+    Length=48 symbols, NumOfSuperZones=1, Total Bursts=8
+    
+        SuperZone #0: TX_SUPER_ZONE UPLINK WIMAX NumOfZones=2, Length=39 symbols
+    	************************************************
+    	    SuperZone #0: Zone #0: TX_ZONE
+    	************************************************
+    	zone_index       : 0d0
+    	zone_type        : WIMAX_ZONE
+    	permutation      : FUSC
+    	DL preamble      : 0
+    	next_zone        : TX_ZONE
+    	padding_samples  : 0x455
+    	zone_length      : 9 symbols
+    	FB_offset        : 0
+    	PRBS ID          : 0x0
+    	DL_PERMBase      : 0x2
+    	num_of_bursts    : 1
+    	stc_mode         : STC_3
+    	matrix           : MATRIX_A
+    	beam_select      : 0x4
+    	use_sub_channel  : 1
+    	dedicated_pilots : 0
+    	zone_boosting    : 0x0
+    	data_rot_assist  : 0x4c65
+    	antenna_coef_ptr : 0xd1e8
+    	************************************************
+    Total area = 96, NumOfBursts = 1
+    0: Area = 52 slots (156), len = 6, depth = 26: start_symb=0, start_subchan=2
+    
+          0   3   6
+      ____________
+     0|   0   0   0
+     1|   0   0   0
+     2|   0   0   0
+     3|   0   0   0
+     4|   0   0   0
+     5|   0   0   0
+     6|   0   0   0
+     7|   0   0   0
+     8|   0   0   0
+     9|   0   0   0
+    10|   0   0   0
+    11|   0   0   0
+    12|   0   0   0
+    13|   0   0   0
+    14|   0   0   0
+    15|   0   0   0
+    16|   0   0   0
+    17|   0   #   #
+    18|   #   #   #
+    19|   #   #   #
+    20|   #   #   #
+    21|   #   #   #
+    22|   #   #   #
+    23|   #   #   #
+    24|   #   #   #
+    25|   #   #   #
+    26|   #   #   #
+    27|   #   #   #
+    28|   #   #   #
+    29|   #   #   #
+    30|   #   #   #
+    31|   #   #   #
+    	************************************************
+    	    SuperZone #0: Zone #1: TX_ZONE
+    	************************************************
+    	zone_index       : 0d1
+    	zone_type        : WIMAX_ZONE
+    	permutation      : PUSC
+    	DL preamble      : 0
+    	next_zone        : TX_ZONE
+    	padding_samples  : 0x7f5
+    	zone_length      : 30 symbols
+    	FB_offset        : 9
+    	PRBS ID          : 0x0
+    	DL_PERMBase      : 0x3e
+    	num_of_bursts    : 7
+    	stc_mode         : NO_STC
+    	matrix           : MATRIX_A
+    	beam_select      : 0x7
+    	use_sub_channel  : 0
+    	dedicated_pilots : 0
+    	zone_boosting    : 0x0
+    	data_rot_assist  : 0xe5ff
+    	antenna_coef_ptr : 0xc457
+    	************************************************
+    Total area = 320, NumOfBursts = 7
+    0: Area = 68 slots (204), len = 12, depth = 17: start_symb=21, start_subchan=0
+    1: Area = 3 slots (9), len = 9, depth = 1: start_symb=24, start_subchan=17
+    2: Area = 5 slots (15), len = 15, depth = 1: start_symb=24, start_subchan=18
+    3: Area = 5 slots (15), len = 15, depth = 1: start_symb=24, start_subchan=19
+    4: Area = 20 slots (60), len = 6, depth = 10: start_symb=33, start_subchan=20
+    5: Area = 1 slots (3), len = 3, depth = 1: start_symb=36, start_subchan=30
+    6: Area = 1 slots (3), len = 3, depth = 1: start_symb=36, start_subchan=31
+    
+          9  12  15  18  21  24  27  30  33  36
+      ________________________________________
+     0|   5   5   5   5   1   1   1   1   5   5
+     1|   5   5   5   5   1   1   1   1   5   5
+     2|   5   5   5   5   1   1   1   1   5   5
+     3|   5   5   7   #   1   1   1   1   #   #
+     4|   #   #   #   #   1   1   1   1   #   #
+     5|   #   #   #   #   1   1   1   1   #   #
+     6|   #   #   #   #   1   1   1   1   #   #
+     7|   #   #   #   #   1   1   1   1   #   #
+     8|   #   #   #   #   1   1   1   1   #   #
+     9|   #   #   #   #   1   1   1   1   #   #
+    10|   #   #   #   #   1   1   1   1   #   #
+    11|   #   #   #   #   1   1   1   1   #   #
+    12|   #   #   #   #   1   1   1   1   #   #
+    13|   #   #   #   #   1   1   1   1   #   #
+    14|   #   #   #   #   1   1   1   1   #   #
+    15|   #   #   #   #   1   1   1   1   #   #
+    16|   #   #   #   #   1   1   1   1   #   #
+    17|   #   #   #   #   #   2   2   2   #   #
+    18|   #   #   #   #   #   3   3   3   3   3
+    19|   #   #   #   #   #   4   4   4   4   4
+    20|   #   #   #   #   #   #   #   #   #   #
+    21|   #   #   #   #   #   #   #   #   #   #
+    22|   #   #   #   #   #   #   #   #   #   #
+    23|   #   #   #   #   #   #   #   #   #   #
+    24|   #   #   #   #   #   #   #   #   #   #
+    25|   #   #   #   #   #   #   #   #   #   #
+    26|   #   #   #   #   #   #   #   #   #   #
+    27|   #   #   #   #   #   #   #   #   #   #
+    28|   #   #   #   #   #   #   #   #   #   #
+    29|   #   #   #   #   #   #   #   #   #   #
+    30|   #   #   #   #   #   #   #   #   #   6
+    31|   #   #   #   #   #   #   #   #   #   #
+    
+    
+    ----------------------------------------------------------------------------------
+    
+Normal[NOTE] on vmm_simulation(class) at                    0:
+    Test Case test2 Done
+Simulation PASSED on /./ (/./) at                    0 (0 warnings, 0 demoted errors & 0 demoted warnings)
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 0 ps
+CPU Time:      0.520 seconds;       Data structure size:   0.0Mb
+Mon Jul 27 08:27:56 2009

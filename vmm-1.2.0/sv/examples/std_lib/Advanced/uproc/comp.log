@@ -1,0 +1,131 @@
+Command: vcs +define+VMM_12 +incdir+/remote/vtghome11/fdelgust/vmm-1.2.0//sv -sverilog \
+-debug_all test.sv -l comp.log
+                         Chronologic VCS (TM)
+           Version C-2009.06-1 -- Mon Aug  3 11:13:14 2009
+               Copyright (c) 1991-2008 by Synopsys Inc.
+                         ALL RIGHTS RESERVED
+
+This program is proprietary and confidential information of Synopsys Inc.
+and may be used and disclosed only as authorized in a license agreement
+controlling such use and disclosure.
+
+Parsing design file 'test.sv'
+Parsing included file 'common_instruction_scenario.sv'.
+Parsing included file 'uniq_rand_num_list.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_log_macros.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_data_macros.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_data_macros_utils.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_data_macros.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_scenario_macros.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_xactor_macros.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_subenv_macros.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_env_macros.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_tlm_macros.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_version.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_object.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_tlm.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_atomic_gen.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_opts.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_log.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_notify.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_data.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_scenario.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_scenario_gen.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_channel.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_consensus.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_subenv.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_env.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_xactor.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_broadcast.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_scheduler.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_ms_scenario_gen.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/xvc_action.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/xvc_xactor.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/xvc_manager.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_test.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_path_match.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_object_iter.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_phasing.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_unit.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_rtl_config.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_timeline.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_simulation.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_config_macros.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_factory.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_rw.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/vmm.sv'.
+Back to file 'uniq_rand_num_list.sv'.
+Back to file 'common_instruction_scenario.sv'.
+Parsing included file 'instruction.sv'.
+Parsing included file 'opcode.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Parsing included file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm_tlm_macros.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/std_lib/vmm.sv'.
+Back to file '/remote/vtghome11/fdelgust/vmm-1.2.0//sv/vmm.sv'.
+Back to file 'opcode.sv'.
+Back to file 'instruction.sv'.
+Back to file 'common_instruction_scenario.sv'.
+Back to file 'test.sv'.
+Top Level Modules:
+       P
+No TimeScale specified
+Starting vcs inline pass...
+2 modules and 0 UDP read.
+recompiling module P
+All of 3 modules done
+make[2]: Entering directory `/slowfs/vgcs6/fdelgust/VMM_TD/vgcommon/RVM_ROOT/srcdist/sv/examples/std_lib/Advanced/uproc/csrc' \
+
+gcc  -pipe -m32 -O -I/global/apps/vcs_2009.06-1/include   -c -o rmapats.o rmapats.c \
+
+if [ -x ../simv ]; then chmod -x ../simv; fi
+g++  -o ../simv -melf_i386 -m32   5NrI_d.o 5NrIB_d.o jAci_1_d.o Yrj5_1_d.o BNKv_1_d.o \
+rmapats_mop.o rmapats.o SIM_l.o    /global/apps/vcs_2009.06-1/linux/lib/libvirsim.a \
+/global/apps/vcs_2009.06-1/linux/lib/librterrorinf.so /global/apps/vcs_2009.06-1/linux/lib/libsnpsmalloc.so \
+/global/apps/vcs_2009.06-1/linux/lib/libvcsnew.so     /global/apps/vcs_2009.06-1/linux/lib/vcs_save_restore_new.o \
+/global/apps/vcs_2009.06-1/linux/lib/ctype-stubs_32.a -ldl -lm  -lc -lpthread -ldl \
+
+../simv up to date
+make[2]: Leaving directory `/slowfs/vgcs6/fdelgust/VMM_TD/vgcommon/RVM_ROOT/srcdist/sv/examples/std_lib/Advanced/uproc/csrc' \
+

@@ -1,0 +1,1 @@
+vcs "-sverilog" "+define+VMM_12" "+incdir+/remote/vtghome11/fdelgust/vmm-1.2.0//sv" "env.sv" "-l" "comp.log"

@@ -1,0 +1,14 @@
+test1.sv demonstrates how to use vmm_opts through command-line or option file (see the Makefile for +vmm_opts+ commands). In phy_tb_config, the rand variable num_of_dl_pusc_subchannels is set with vmm_opts, while num_of_ul_subchannels is left constrained random.
+
+test2.sv extends the phy_frame transaction class with new constraints and shows how to replace all phy_frame factories in a single line.
+
+The two vmm_tests are run sequentially in a single vmm_simulation.
+The vmm_opt configuration applies to both tests, while num_of_ul_subchannels is indeed randomized twice.
+ 
+ To run the example:
+      Using Makefile:
+       	clean           -- To clean up the log files and executable of previous run
+       	comp            -- To compile the design
+        run             -- To run the design
+        all             -- It does all the above steps.
+ 

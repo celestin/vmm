@@ -1,0 +1,18 @@
+ifdef VMM_HOME
+OPTS = +define+VMM_12 +incdir+$(VMM_HOME)/sv
+else
+OPTS = +define+VMM_12 -ntb_opts rvm
+endif
+
+all: comp run
+
+comp:
+	vcs -sverilog -f files -debug_pp -timescale="1ns/1ps" -debug_all \
+		$(OPTS)
+
+clean:
+	rm -rf vcdplus.vpd  simv* csrc vc_hdrs.h  .vcsmx_rebuild
+	rm -rf gen.dat bad_log
+
+run:
+	./simv

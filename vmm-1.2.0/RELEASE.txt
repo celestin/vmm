@@ -1,0 +1,20 @@
+------------------------------------------------------------
+Verification Methodology Manual
+version 1.2.0
+
+
+                                RELEASE NOTES
+
+
+(C) Copyright 2004-2009 Synopsys, Inc.
+All Rights Reserved Worldwide
+
+The VMM methodology defines industry best practices for creating robust, reusable and scalable verification environments using SystemVerilog. Introduced in 2005, it is the industry s most widely used and proven verification methodology for SystemVerilog. The VMM methodology enables verification novices and experts alike to develop powerful transaction-level, constrained-random verification environments. A comprehensive set of guidelines, recommendations and rules help engineers avoid common mistakes while creating interoperable verification components. The VMM Standard Library provides the foundation base classes for building advanced testbenches, while VMM Applications provide higher-level functions for improved productivity. 
+
+VMM 1.2 adds new classes and concepts to provide additional functionality and flexibility. We have added parameterization support to many existing classes including channels and generators. We have added TLM-2.0 support, which adds remote procedure call functionality between components and extends support to SystemC modules. Configuration Options adds a rich set of methods for controlling testbench functionality from the runtime command line. The Class Factory allows for faster stimulus configuration and reuse. A new Common Base Class make possible multiple name spaces, hierarchical naming along with enhanced search functionality RTL configuration insures the same configuration is shared between RTL and testbench. 
+
+Also, we have added the concept of phasing and timelines for enhanced flexibility and reuse of verification components. Implicit phasing enables components to control their own status. Hierarchical phasing promotes block-to-system reuse, set-up, and restart of power domains. Serial phasing supports multiple timelines within a simulation, improving regression productivity. 
+
+VMM 1.2 is based on the feedback and contributions of many verification engineers who participate in the verification community discussion forums at VMM Central. Please join us at www.vmmcentral.org to engage with fellow verification engineers and industry experts, and to obtain VMM-related support. In addition, VMM Central offers the latest VMM-related news and a broad array of useful resources.
+
+------------------------------------------------------------

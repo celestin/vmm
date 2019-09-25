@@ -1,0 +1,5 @@
+`include "fpu_trans.sv"
+`include "fpu_cfg.sv"
+`include "fpu_master.sv"
+`include "fpu_mon.sv"
+`include "fpu_gen.sv"
