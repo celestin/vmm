@@ -1,0 +1,12 @@
+To run vcs with interop libs:
+
+  setup VCS0912-7 or later
+
+For the Opensource build, you need to set these 2 environment variables:
+  setenv VMM_HOME <path to your VMM Opensource Build>
+  setenv UVM_HOME <path to your UVM Opensource Build>
+
+Execute:
+	gmake
+
+*.log file will contain compilation and simulation log

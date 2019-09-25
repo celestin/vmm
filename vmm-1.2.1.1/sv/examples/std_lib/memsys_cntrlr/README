@@ -1,0 +1,89 @@
+
+
+Keywords:
+		Search keywords: Multistream Scenario Generator[MSS] hierarchical scenarios Hierachical configuration RTL configuration TLM analysis  Consensus mechanism  test concatenation factory Record/Playback VMM1.2 	
+ 
+Technical content:
+		Title: 		 VMM1.2	
+		
+		Objective:        To Demonstarte VMM1.2	Features
+		Description: 	  
+DUT
+---
+DUT is a memory conroller block with a master interface (CPU) and a slave
+interface (SRAM) with multiple device selects. 1,2 or 4 SRAMs can be connected to the DUT. Also the size of each SRAM device can be configured (256, 512, 1024)
+
+Verification Environment
+------------------------
+It is a VMM based verification environment with reusable CPU and SRAM vips. Multistream Scenario Generator is used for stimulus generation along with hierarchical scenarios VMM datastream scoreboard instances are used for checking data integrity across Configuration.
+
+- Hierachical configuration is used for configuring verification parameters
+
+- RTL configuration is used configure VIPs (eg: number of SRAMs)
+
+Different ways of communication across the components are used
+
+- vmm_channel is used for communication between generator and driver
+
+- TLM analysis ports are used to extract information for functional coverage and scoreboard
+
+- Callbacks is used by test cases for error injection
+
+- Consensus mechanism is used to control the end of simulation
+
+- Sample test cases have factory usage for transactions and scenarios,
+
+- Test concatenation used. Test cases can be selected during runtime which avoids recompilation
+
+Simulation can be run in NORMAL mode (default), RECORD mode or PLAYBACK mode.
+During RECORD mode, CPU driver channel transactions get recorded in a file.
+During PLAYBACK mode, CPU generator is disabled and transactions are loaded from the file generated during RECORD mode.
+
+Directory Structure
+-------------------
+hdl        - Contains RTL file
+vips       - Contains SRAM and CPU vips
+cntrlr_env - Contains project specific environment files for the controller
+tests      - Contains test cases
+RTL_CFG    - Contains generated RTL configuration files
+run        - Contains Makefile to run tests
+
+
+	
+		Additional setup: None	
+ 
+ To run the example:
+      Using Makefile:
+       	clean           -- To clean up the log files and executable of previous run
+       	comp            -- To compile the design
+        <testcase>      -- To run the design
+			   gmake test_random
+                           gmake test_write_read_same_addr
+                           gmake test_write_back2back
+                           gmake test_read_back2back
+			   gmake test_directed
+			   gmake test_error
+                           gmake test_concat    - This test concatenates test_concat1 and test_concat2
+
+		 	   gmake gen_rtl_cfg     - Generates RTL configuration files. There is a simple script which converts RTL config files to parameter file which will be loaded by DUT during compilation
+Note: Once RTL config files are generated, recompilation is necessary (gmake comp) for the DUT to take the latest parameters.
+
+			   RECORD/PLAYBACK: 
+			   gmake comp
+                           gmake <test case> MODE=RECORD
+                           gmake <test case> MODE=PLAYBACK
+
+     
+
+      Using shell scripts:
+        clean.csh            -- To clean up the log files and executable of previousrun
+        comp.csh             -- To compile the design 
+        run_gen_rtl_cfg.csh  -- To generate the rtl configuration
+        run.csh              -- To run the design [ assuming rtl confiuration is already generated] this will run test_random testcase.
+	run_record.csh       -- To run the design in record mode
+        run_playback.csh     -- To run the design in playback mode
+ 
+ Location Information:
+		PATH: 			$VCS_HOME/doc/examples/testbench/sv/vmm-1.2/std_lib
+		DIAGRAMS: 		None
+		Cross Reference:	

@@ -1,0 +1,50 @@
+## 
+## -------------------------------------------------------------
+##    Copyright 2004-2009 Synopsys, Inc.
+##    All Rights Reserved Worldwide
+## 
+##    Licensed under the Apache License, Version 2.0 (the
+##    "License"); you may not use this file except in
+##    compliance with the License.  You may obtain a copy of
+##    the License at
+## 
+##        http://www.apache.org/licenses/LICENSE-2.0
+## 
+##    Unless required by applicable law or agreed to in
+##    writing, software distributed under the License is
+##    distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+##    CONDITIONS OF ANY KIND, either express or implied.  See
+##    the License for the specific language governing
+##    permissions and limitations under the License.
+## -------------------------------------------------------------
+##
+
+
+Keywords:
+		Search keywords: 	SV VMM telecom router Driver Receiver
+ 
+Technical content:
+ 
+		Title:    	Developing VMM-compliant verification environment for an ATM router
+ 
+		Objective: 	 To explain how to develop VMM-compliant data models, generators and transactors to efficiently and easily create a robust constraint random verification environment for telecom domains. 
+		Description: 	The ATM router has multiple/configurable number of i/p and o/p ports. Packets can be transmitted from any input to o/p ports. There are specific charectreistics of the packets and the Recievers have to accordingly identify these packets by decoupling this information. The example shows how multiple driver /receiver VMM componenst can be ceated, and along with the Packet generators simulate different interesting traffic patterns while tracking coverage and ensuring data integrity throughh environment scoreboard components.
+
+		Additional setup: None	
+ 
+ To run the example:
+      Using Makefile:
+       	clean           -- To clean up the log files and executable of previous run
+       	comp            -- To compile the design
+        run             -- To run the design
+        all             -- It does all the above steps.
+     Using shell scripts:
+        clean.csh       -- To clean up the log files and executable of previous run
+        comp.csh        -- To compile the design
+        run.csh         -- To run the design  
+ 
+ 
+Location Information:
+		PATH: 			$VCS_HOME/doc/examples/testbench/sv/vmm/tech_domains/telecom/atm_router
+		DIAGRAMS: 		None
+		Cross Reference:	$VCS_HOME/doc/UserGuide/vmm_sv.pdf

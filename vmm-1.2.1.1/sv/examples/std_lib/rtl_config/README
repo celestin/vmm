@@ -1,0 +1,29 @@
+
+
+Keywords:
+		Search keywords: 	SV VMM vmm_rtl_config  
+
+Technical content:
+ 
+		Title: 		 VMM_RTL_CONFIG
+ 
+		Objective:    Demonstrates the usage of RTL Configuration.
+
+		Description:   This test shows the generation and usage of RTL configuartion. A two-pass process is used :
+		               1. first pass to generate the RTL configuration to use.(+vmm_gen_rtl_config)
+																	2. second pass to verify this configuartion.
+																	
+		Additional setup: None	
+ 
+ To run the example:
+      Using Makefile:
+       	make clean           -- To clean up the log files and executable of previous run
+       	make comp            -- To compile the design
+        make run             -- To run the design
+        make all             -- It does all the above steps.
+ 
+ 
+Location Information:
+		PATH: 			$VMM_HOME/examples/testbench/sv/vmm/std_lib/vmm_rtl_config
+		DIAGRAMS: 		None
+		Cross Reference:	$VMM_HOME/doc/vmm_user_guide.pdf

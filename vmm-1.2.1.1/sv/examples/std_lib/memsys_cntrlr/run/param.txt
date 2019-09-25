@@ -1,0 +1,2 @@
+assign 4 test_top/NUM_OF_SRAMS
+assign 9 test_top/RAM_ADDR_WDTH

@@ -1,0 +1,86 @@
+------------------------------------------------------------
+Title: VMM Release Notes
+
+(C) Copyright 2004-2010 Synopsys, Inc.
+All Rights Reserved Worldwide
+
+Topic: Overview
+
+The VMM methodology defines industry best practices for creating
+robust, reusable and scalable verification environments using
+SystemVerilog. 
+
+Introduced in 2005, VMM is the industry s most widely
+used and proven verification methodology for SystemVerilog. 
+
+The VMM methodology enables verification novices and experts alike to develop: 
+ - Powerful transaction-level
+ - Constrained-random verification environments. 
+ - Reusable verification environments across projects
+ - Reusable verification environments from block-level to SoC
+
+A comprehensive set of guidelines, recommendations and
+rules help engineers avoid common mistakes while creating
+interoperable verification components. The VMM Standard Library
+provides the foundation base classes for building advanced
+testbenches, while VMM Applications provide higher-level functions for
+improved productivity.
+
+Please join us at http://www.vmmcentral.org
+to engage with fellow verification engineers and industry experts, and
+to obtain VMM-related support. In addition, VMM Central offers the
+latest VMM-related news and a broad array of useful resources.
+
+Topic: VMM 1.2.0 Release Notes
+
+VMM 1.2 adds new classes and concepts to provide additional functionality and flexibility:
+  - Parameterization support to many existing classes including channels and 
+    generators
+  - TLM-2.0 support, which adds remote procedure call functionality between 
+    components and extends support to SystemC modules. 
+  - Hierarchical Configuration Options adds a rich set of methods for controlling 
+    testbench functionality from the runtime command line, configuration files or 
+    from within the testench code itself. 
+  - Class Factory API allows for easier replacement of the class factory 
+    instances compared to the earlier versions of VMM. 
+  - Common Base Class provides hierarchical naming in multiple namespaces 
+    along with enhanced object search functionality.
+  - Concept of implicit phasing and hierarchical timelines for enhanced 
+    flexibility and reuse of verification components. Implicit phasing 
+    enables components to control their own simlation progress. Hierarchical 
+    phasing promotes block-to-system reuse, set-up, and restart of power domains.
+
+VMM 1.2 is based on the feedback and contributions of many
+verification engineers who participate in the verification community
+discussion forums at VMM Central. 
+
+Topic: VMM 1.2.1 Release Notes
+
+
+Additions and bug fixes in the standard library:
+  - Updated all base classes for full compliance with other simulators
+  - Improved examples  
+  - Added vmm_broadcast::update_xactor_notifications
+  - Fixed minor issues in vmm_consensus
+  - Added post_scenario_gen callback in vmm_ms_scenario_gen.sv
+  - Added PUSH/PULL mode for cvmm_channel, vmm_atomic_gen and vmm_scenario_gen
+    Available with channel.wait_for_request() blocking task
+  - Addedd vmm_consensus::is_register_consensus & vmm_consensus::set_register_consensus 
+  - Added vmm_object support in vmm_notify with set_parent_object() function
+  - Added parent explicit registration with vmm_object::register_object() /  
+    vmm_object::unregister_object
+  - Possibility to underpin vmm_group with custom base class
+    (default is vmm_unit)
+
+Additions and bug fixes in the standard library for interoperability:
+  - Added support for VMM_UVM_INTEROP library
+  - Adedd full interoperability between VMM-SV and VMM-SC (available on demand)
+
+Additions and bug fixes in VMM-HAL:
+  - Support of CHIPit in VMM-HAL
+
+Additions and bug fixes in VMM-PA:
+  - Improved VMM performance analyzer output files
+
+Additions and bug fixes in VMM-RAL
+  - Added RAL implicit phasing support and underpinning

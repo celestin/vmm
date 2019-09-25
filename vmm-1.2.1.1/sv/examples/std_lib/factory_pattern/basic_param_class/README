@@ -1,0 +1,53 @@
+## 
+## -------------------------------------------------------------
+##    Copyright 2004-2009 Synopsys, Inc.
+##    All Rights Reserved Worldwide
+## 
+##    Licensed under the Apache License, Version 2.0 (the
+##    "License"); you may not use this file except in
+##    compliance with the License.  You may obtain a copy of
+##    the License at
+## 
+##        http://www.apache.org/licenses/LICENSE-2.0
+## 
+##    Unless required by applicable law or agreed to in
+##    writing, software distributed under the License is
+##    distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+##    CONDITIONS OF ANY KIND, either express or implied.  See
+##    the License for the specific language governing
+##    permissions and limitations under the License.
+## -------------------------------------------------------------
+##
+
+
+Keywords:
+		Search keywords: 	create_by_copy	vmm1.2
+
+Technical content:
+ 
+		Title: 		param class  
+ 
+		Objective:     Usage of param class in factory replacement.
+
+		Description:  blueprint and factory are param classes.Used create_by_new to replace the factory 
+
+
+		Additional setup: None	
+ 
+ To run the example:
+      Using Makefile:
+       	clean           -- To clean up the log files and executable of previous run
+       	comp            -- To compile the design
+        run             -- To run the design
+        all             -- It does all the above steps.
+     Using shell scripts:
+        clean.csh       -- To clean up the log files and executable of previous run
+        comp.csh        -- To compile the design
+        run.csh         -- To run the design  
+ 
+ 
+Location Information:
+		PATH: 			$VMM_HOME/examples/testbench/sv/vmm/std_lib/factory_pattern/basic_param_class
+		DIAGRAMS: 		None
+		Cross Reference:	$VMM_HOME/doc/vmm_user_guide.pdf
+
