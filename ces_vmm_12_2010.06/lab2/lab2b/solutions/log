@@ -1,0 +1,92 @@
+vcs -sverilog -debug_all -ntb_opts rvm +vcs+lic+wait +define+VMM_12 +incdir+./cntrlr_env+./hdl+./sram+./cpu  ./hdl/cntrlr.v \
+cntrlr_env/cntrlr_test_top.sv cntrlr_env/cntrlr_tb.sv 
+                         Chronologic VCS (TM)
+            Version D-2010.06 -- Wed Jun 30 18:36:50 2010
+               Copyright (c) 1991-2010 by Synopsys Inc.
+                         ALL RIGHTS RESERVED
+
+This program is proprietary and confidential information of Synopsys Inc.
+and may be used and disclosed only as authorized in a license agreement
+controlling such use and disclosure.
+
+Parsing design file '/global/apps5/vcs_2010.06/etc/rvm/vmm.sv'
+Parsing design file './hdl/cntrlr.v'
+Parsing design file 'cntrlr_env/cntrlr_test_top.sv'
+Parsing included file './cpu/cpu_if.sv'.
+Back to file 'cntrlr_env/cntrlr_test_top.sv'.
+Parsing included file './sram/sram_if.sv'.
+Back to file 'cntrlr_env/cntrlr_test_top.sv'.
+Parsing design file 'cntrlr_env/cntrlr_tb.sv'
+Parsing included file '/global/apps5/vcs_2010.06/etc/rvm/vmm.sv'.
+Back to file 'cntrlr_env/cntrlr_tb.sv'.
+Parsing included file './cpu/cpuport.sv'.
+Back to file 'cntrlr_env/cntrlr_tb.sv'.
+Parsing included file './sram/sramport.sv'.
+Back to file 'cntrlr_env/cntrlr_tb.sv'.
+Parsing included file './cntrlr_env/cntrlr_env.sv'.
+Parsing included file './cpu/cpu_trans.sv'.
+Back to file './cntrlr_env/cntrlr_env.sv'.
+Parsing included file './cpu/cpu_driver.sv'.
+Back to file './cntrlr_env/cntrlr_env.sv'.
+Parsing included file './sram/sram_trans.sv'.
+Back to file './cntrlr_env/cntrlr_env.sv'.
+Parsing included file './sram/sram_model.sv'.
+Back to file './cntrlr_env/cntrlr_env.sv'.
+Back to file 'cntrlr_env/cntrlr_tb.sv'.
+Parsing included file 'test.sv'.
+Back to file 'cntrlr_env/cntrlr_tb.sv'.
+Top Level Modules:
+       test_top
+No TimeScale specified
+Notice: Ports coerced to inout, use -notice for details
+Starting vcs inline pass...
+5 modules and 0 UDP read.
+recompiling package _vcs_vmm
+recompiling module sram_if
+recompiling module test_top
+recompiling module cntrlr_tb
+All of 6 modules done
+make[1]: Entering directory `/remote/us01home17/jachang/cae_vmm1.2_2010.06_v1.0/lab2/lab2b/solutions/csrc'
+if [ -x ../simv ]; then chmod -x ../simv; fi
+g++  -o ../simv -melf_i386 -m32   _vcsobj_1_1.o  5NrI_d.o 5NrIB_d.o SIM_l.o     rmapats_mop.o rmapats.o       /global/apps5/vcs_2010.06/linux/lib/libvirsim.so /global/apps5/vcs_2010.06/linux/lib/librterrorinf.so /global/apps5/vcs_2010.06/linux/lib/libsnpsmalloc.so     /global/apps5/vcs_2010.06/linux/lib/libvcsnew.so        /global/apps5/vcs_2010.06/linux/lib/vcs_save_restore_new.o /global/apps5/vcs_2010.06/linux/lib/ctype-stubs_32.a -ldl -lm  -lc -lpthread -ldl 
+../simv up to date
+make[1]: Leaving directory `/remote/us01home17/jachang/cae_vmm1.2_2010.06_v1.0/lab2/lab2b/solutions/csrc'
+CPU time: 3.444 seconds to compile + .046 seconds to elab + .450 seconds to link
+./simv +ntb_random_seed=1 +vmm_log_default=NORMAL -l run.log
+Chronologic VCS simulator copyright 1991-2010
+Contains Synopsys proprietary information.
+Compiler version D-2010.06; Runtime version D-2010.06;  Jun 30 18:36 2010
+VCD+ Writer D-2010.06 Copyright (c) 1991-2010 by Synopsys Inc.
+Normal[NOTE] on vmm_simulation(class) at                    0:
+    Available tests are:
+       1) test : 
+Normal[NOTE] on class cntrlr_tb.sram_model(env:rams) at                    0:
+    sram_model[0] - Configurating the sram start and end addresses within the configure_ph()
+Normal[NOTE] on class cntrlr_tb.sram_model(env:rams) at                    0:
+    sram_model[1] - Configurating the sram start and end addresses within the configure_ph()
+Normal[NOTE] on class cntrlr_tb.sram_model(env:rams) at                    0:
+    sram_model[2] - Configurating the sram start and end addresses within the configure_ph()
+Normal[NOTE] on class cntrlr_tb.sram_model(env:rams) at                    0:
+    sram_model[3] - Configurating the sram start and end addresses within the configure_ph()
+Normal[NOTE] on class _vcs_vmm::vmm_xactor(env:CPUDrv) at                    0:
+    Connecting the cpu_driver to the DUT within the connect_ph()
+Normal[NOTE] on class cntrlr_tb.sram_model(env:rams) at                    0:
+    sram_model[0] - Connecting the sram_model to the DUT within the connect_ph()
+Normal[NOTE] on class cntrlr_tb.sram_model(env:rams) at                    0:
+    sram_model[1] - Connecting the sram_model to the DUT within the connect_ph()
+Normal[NOTE] on class cntrlr_tb.sram_model(env:rams) at                    0:
+    sram_model[2] - Connecting the sram_model to the DUT within the connect_ph()
+Normal[NOTE] on class cntrlr_tb.sram_model(env:rams) at                    0:
+    sram_model[3] - Connecting the sram_model to the DUT within the connect_ph()
+Normal[NOTE] on vmm_simulation(class) at                    0:
+    Running Test Case test
+Normal[NOTE] on Testcase(test) at                    0:
+    Entering start_of_sim_ph()
+Simulation PASSED on /./ (/./) at                 6650 (0 warnings, 0 demoted errors & 0 demoted warnings)
+Normal[NOTE] on vmm_simulation(class) at                 6650:
+    Test Case test Done
+$finish at simulation time                 6650
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 6650
+CPU Time:      0.680 seconds;       Data structure size:   0.0Mb
+Wed Jun 30 18:36:56 2010
